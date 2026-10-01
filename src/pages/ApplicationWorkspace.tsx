@@ -110,18 +110,25 @@ export const ApplicationWorkspace: React.FC = () => {
   }, [appId]);
 
   const handleAttestClaim = (claimId: string) => {
-    setClaims((prev) =>
-      prev.map((c) =>
+    setClaims((prev) => {
+      const nextClaims = prev.map((c) =>
         c.id === claimId
           ? {
               ...c,
-              status: 'Verified',
+              status: 'Verified' as const,
               flagReason: undefined,
               sourceEvidenceSummary: 'Attested by candidate from production logs',
             }
           : c
-      )
-    );
+      );
+      const remainingUnverified = nextClaims.filter(
+        (c) => c.status === 'Needs Attestation / Flagged'
+      ).length;
+      if (remainingUnverified === 0 && application) {
+        setApplication((curr) => (curr ? { ...curr, automationState: 'Ready' } : null));
+      }
+      return nextClaims;
+    });
   };
 
   if (isLoading) {
@@ -170,11 +177,24 @@ export const ApplicationWorkspace: React.FC = () => {
     );
   };
 
-  const allChecklistPass = Object.values(checklist).every(Boolean);
+  const unverifiedClaimsCount = claims.filter(
+    (c) => c.status === 'Needs Attestation / Flagged'
+  ).length;
+
+  const allChecklistPass = Object.values(checklist).every(Boolean) && unverifiedClaimsCount === 0;
+
+  const effectiveAutomationState: AutomationState =
+    unverifiedClaimsCount > 0 && (application.automationState === 'Ready' || application.automationState === 'Submitted')
+      ? 'Human Review'
+      : application.automationState;
 
   const handleSimulateSubmit = () => {
     if (!allChecklistPass) {
-      alert('Please satisfy all pre-flight validation checklist items before submitting.');
+      if (unverifiedClaimsCount > 0) {
+        alert('Cannot submit: 1 claim requires candidate attestation. Please review flagged claims in the Claim Audit tab.');
+      } else {
+        alert('Please satisfy all pre-flight validation checklist items before submitting.');
+      }
       return;
     }
     setSubmissionSuccessModal(true);
@@ -192,7 +212,7 @@ export const ApplicationWorkspace: React.FC = () => {
         subtitle={`${job.companyName} · ${job.location} · Route: ${application.route} · Target: €80K+ Relocation to Germany`}
         actions={
           <div className="flex items-center gap-3">
-            <AutomationBadge state={application.automationState} />
+            <AutomationBadge state={effectiveAutomationState} />
             <Button
               variant="secondary"
               size="sm"
@@ -641,6 +661,8 @@ export const ApplicationWorkspace: React.FC = () => {
           <ValidationChecklist
             checklist={checklist}
             onToggleItem={handleToggleChecklistItem}
+            unverifiedClaimsCount={unverifiedClaimsCount}
+            onInspectClaims={() => setActiveTab('claims')}
           />
 
           {/* CLAIM EVIDENCE AUDIT HEALTH */}
@@ -732,6 +754,10 @@ export const ApplicationWorkspace: React.FC = () => {
           {allChecklistPass ? (
             <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Pre-Flight Complete: Ready for Human Submission
+            </span>
+          ) : unverifiedClaimsCount > 0 ? (
+            <span className="text-amber-800 font-medium flex items-center gap-1.5">
+              <AlertTriangle className="w-4 h-4 text-amber-600" /> {unverifiedClaimsCount} claim attestation outstanding — review flagged claims in Claim Audit to enable submission
             </span>
           ) : (
             <span className="text-amber-700 font-medium flex items-center gap-1.5">

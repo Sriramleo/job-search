@@ -78,6 +78,42 @@ describe('Germany Job Hunt — UI Components', () => {
     expect(toggledKey).toBe('correctJob');
   });
 
+  it('separates Fabrication from Unverified and blocks Ready when claim attestation is outstanding', () => {
+    const checklist = {
+      correctJob: true,
+      correctCompany: true,
+      correctCV: true,
+      coverLetterReady: true,
+      requiredQuestionsAnswered: true,
+      workAuthorizationVerified: true,
+      noticePeriodVerified: true,
+      noFabricatedInfo: true,
+      noMissingRequiredFields: true,
+    };
+
+    const { rerender } = render(
+      <ValidationChecklist checklist={checklist} unverifiedClaimsCount={1} />
+    );
+
+    // Header counter should be 8/9 Ready and 1 Needs Attestation
+    expect(screen.getByText('8 / 9 Ready')).toBeInTheDocument();
+    expect(screen.getByText('1 Needs Attestation')).toBeInTheDocument();
+
+    // Fabrication item is PASS
+    expect(screen.getByText('No Fabricated Experience Claims')).toBeInTheDocument();
+
+    // Unverified item is REVIEW with 1 requires attestation
+    expect(screen.getByText('Unsupported / Unverified Claims')).toBeInTheDocument();
+    expect(screen.getByText('1 requires attestation')).toBeInTheDocument();
+    expect(screen.getByText('REVIEW')).toBeInTheDocument();
+
+    // When attestation is completed (0 unverified)
+    rerender(<ValidationChecklist checklist={checklist} unverifiedClaimsCount={0} />);
+    expect(screen.getByText('9 / 9 Ready')).toBeInTheDocument();
+    expect(screen.queryByText('1 Needs Attestation')).not.toBeInTheDocument();
+    expect(screen.queryByText('REVIEW')).not.toBeInTheDocument();
+  });
+
   it('renders Button states and executes onClick', () => {
     let clicked = false;
     render(

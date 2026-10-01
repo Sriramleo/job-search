@@ -11,7 +11,7 @@ export const mockApplications: Application[] = [
     salaryRange: '€95K–€110K',
     stage: 'Ready',
     route: 'Referral + Official ATS',
-    automationState: 'Ready',
+    automationState: 'Human Review',
     updatedDate: '2026-09-30',
     nextAction: 'Submit application via internal referral portal',
     nextActionDueDate: '2026-10-02',

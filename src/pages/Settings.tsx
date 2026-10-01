@@ -246,7 +246,7 @@ export const Settings: React.FC = () => {
           <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl space-y-3">
             <div className="flex items-center justify-between">
               <span className="font-semibold text-slate-900 text-xs flex items-center gap-1.5">
-                <Info className="w-3.5 h-3.5 text-blue-600" /> Statutory EU Blue Card (§ 18g AufenthG) Prerequisites
+                <Info className="w-3.5 h-3.5 text-blue-600" /> EU Blue Card Eligibility Factors
               </span>
               <span className="text-[10px] text-slate-500">Source: Federal Ministry of the Interior / BAMF</span>
             </div>
@@ -294,7 +294,7 @@ export const Settings: React.FC = () => {
             </div>
 
             <div className="text-[10px] text-slate-500 leading-normal pt-1">
-              <strong>Evidentiary Notice:</strong> Salary compatibility is evaluated dynamically alongside mandatory degree recognition and binding employment contract conditions. System never generates legal pass/fail verdicts; official visa issuance is determined solely by German consular and immigration authorities.
+              <strong>Evidentiary Notice:</strong> Requirements vary by eligibility route and must be verified against current official requirements. Salary compatibility is evaluated dynamically alongside mandatory degree recognition and binding employment contract conditions. System never generates legal pass/fail verdicts; official visa issuance is determined solely by German consular and immigration authorities.
             </div>
           </div>
         </div>
@@ -394,14 +394,14 @@ export const Settings: React.FC = () => {
 
                 <div>
                   <label className="block text-[11px] text-[#64748B] font-medium mb-1">
-                    API Credential Mask
+                    Credential
                   </label>
                   <input
-                    type="password"
+                    type="text"
                     disabled
-                    value="••••••••••••••••••••"
-                    className="w-full p-2 bg-slate-100/70 border border-[#E2E8F0] rounded-lg text-slate-500 text-xs font-mono"
-                    title="Mock credential mask. Never store real secrets."
+                    value="UI placeholder — not stored"
+                    className="w-full p-2 bg-slate-100/70 border border-[#E2E8F0] rounded-lg text-slate-500 text-xs italic font-sans"
+                    title="UI placeholder — not stored"
                   />
                 </div>
               </div>

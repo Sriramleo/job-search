@@ -4,7 +4,7 @@ export const mockResearchEvidence: ResearchEvidence[] = [
   {
     id: 'ev-01',
     category: 'Relocation Evidence',
-    claim: 'Zalando provides full visa sponsorship, legal filings, and relocation stipend for tech roles in Berlin.',
+    claim: 'Zalando offers comprehensive relocation packages with visa assistance and temporary accommodation in Berlin for international hires.',
     status: 'Confirmed by Source',
     source: 'Zalando Tech Careers Portal',
     url: 'https://jobs.zalando.com/en/tech/relocation',
@@ -16,7 +16,7 @@ export const mockResearchEvidence: ResearchEvidence[] = [
   {
     id: 'ev-02',
     category: 'Work Authorization Evidence',
-    claim: 'Delivery Hero facilitates EU Blue Card visa processing with a dedicated Global Mobility team.',
+    claim: 'Delivery Hero Global Mobility team guides through Blue Card visa process and provides monetary relocation assistance.',
     status: 'Confirmed by Source',
     source: 'Delivery Hero Mobility FAQ',
     url: 'https://careers.deliveryhero.com/global/en/relocation-to-berlin',

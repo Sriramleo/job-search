@@ -16,7 +16,7 @@ export const mockCompanies: Company[] = [
     evidenceList: [
       {
         id: 'ev-zal-1',
-        claim: 'Provides full visa sponsorship and relocation support for senior engineering roles.',
+        claim: 'Offers comprehensive relocation packages including visa assistance and temporary accommodation in Berlin.',
         status: 'Confirmed by Source',
         source: 'Zalando Tech Careers FAQ',
         sourceUrl: 'https://jobs.zalando.com/en/tech/relocation',
@@ -52,7 +52,7 @@ export const mockCompanies: Company[] = [
     evidenceList: [
       {
         id: 'ev-dh-1',
-        claim: 'Active international relocations and EU Blue Card facilitation.',
+        claim: 'Global Mobility team guides through Blue Card visa process and provides relocation assistance.',
         status: 'Confirmed by Source',
         source: 'Delivery Hero Careers Portal',
         sourceUrl: 'https://careers.deliveryhero.com/global/en/relocation-to-berlin',

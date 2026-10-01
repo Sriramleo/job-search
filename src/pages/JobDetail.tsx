@@ -274,10 +274,10 @@ export const JobDetail: React.FC = () => {
                 </div>
                 <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 text-[11px] text-[#64748B] space-y-1.5">
                   <div className="font-semibold text-slate-800 flex items-center gap-1.5">
-                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> Statutory Blue Card Immigration Evidence Framework
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> EU Blue Card Eligibility Factors
                   </div>
                   <p className="leading-relaxed">
-                    Candidate holds a recognized university degree (Anabin H+ listed) and 8 years of specialized engineering experience. Salary compatibility is one of multiple statutory factors; full eligibility requires binding job contract matching degree field and annual BAMF regulatory threshold verification at application time. No automated legal verdict is implied.
+                    Requirements vary by eligibility route and must be verified against current official requirements. Candidate holds a recognized university degree (Anabin H+ listed) and 8 years of specialized engineering experience. Salary compatibility is one of multiple factors; full eligibility requires a binding job contract matching degree field and official authority verification at application time. No automated legal verdict is implied.
                   </p>
                 </div>
               </div>

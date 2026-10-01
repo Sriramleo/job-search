@@ -126,7 +126,7 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
       },
       {
         evidenceId: 'ev-01',
-        claim: 'Visa sponsorship & relocation support verified in portal',
+        claim: 'Relocation package & visa assistance verified in careers portal',
         source: 'Zalando Careers Portal',
       },
     ],
