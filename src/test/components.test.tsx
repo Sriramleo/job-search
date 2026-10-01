@@ -1,7 +1,7 @@
 import React from 'react';
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/react';
-import { Badge, FitBadge, EvidenceBadge, StatusBadge, AutomationBadge } from '../components/ui/Badge';
+import { Badge, FitBadge, EvidenceBadge, StatusBadge, AutomationBadge, ClaimBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Card, KPI } from '../components/ui/Card';
 import { ValidationChecklist } from '../components/applications/ValidationChecklist';
@@ -27,6 +27,17 @@ describe('Germany Job Hunt — UI Components', () => {
 
     rerender(<EvidenceBadge status="Contradictory" />);
     expect(screen.getByText('Contradictory')).toBeInTheDocument();
+  });
+
+  it('renders ClaimBadge with claim-level verification states', () => {
+    const { rerender } = render(<ClaimBadge status="Verified" />);
+    expect(screen.getByText('Verified')).toBeInTheDocument();
+
+    rerender(<ClaimBadge status="Supported by Profile" />);
+    expect(screen.getByText('Supported by Profile')).toBeInTheDocument();
+
+    rerender(<ClaimBadge status="Needs Attestation / Flagged" />);
+    expect(screen.getByText('Needs Attestation / Flagged')).toBeInTheDocument();
   });
 
   it('renders KPI with large tabular values and labels', () => {

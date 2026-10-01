@@ -38,6 +38,18 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
 - Automated Docker container security scans and dependency vulnerability checks in CI/CD pipelines using Trivy and Clair.
 - Administered Linux production server fleet, automated patching routines with Ansible, and maintained zero-loss database backup automation.`,
     tags: ['Master', 'Full CV', 'AWS', 'Kubernetes'],
+    sourceEvidenceReferences: [
+      {
+        evidenceId: 'ev-10',
+        claim: '8 years AWS & multi-tenant Kubernetes with 99.95% SLO track record',
+        source: 'Verified Work History & Production Metrics',
+      },
+      {
+        evidenceId: 'ev-candidate-degree',
+        claim: 'Bachelor of Engineering in CS recognized on Anabin (H+ status)',
+        source: 'ZAB Anabin Database',
+      },
+    ],
   },
   {
     id: 'doc-cv-platform-lead',
@@ -51,6 +63,23 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
     updatedAt: '2026-09-29',
     content: `Tailored emphasis on Platform Engineering, Internal Developer Platforms (IDP), Developer Experience (DevEx), and technical mentorship for Zalando SE...`,
     tags: ['Tailored', 'Platform Lead', 'Zalando', 'ArgoCD'],
+    sourceEvidenceReferences: [
+      {
+        evidenceId: 'ce-01',
+        claim: 'Reduced developer provisioning time by 60% with modular Terraform',
+        source: 'Candidate GitOps Project Record',
+      },
+      {
+        evidenceId: 'ce-03',
+        claim: 'Mentored squad of 4 engineers and founded DevOps platform RFC guild',
+        source: 'Candidate Leadership Record',
+      },
+      {
+        evidenceId: 'ev-01',
+        claim: 'Zalando relocation package & visa assistance verified in careers portal',
+        source: 'Zalando Tech Careers Portal',
+      },
+    ],
   },
   {
     id: 'doc-cv-sre-n26',
@@ -64,6 +93,18 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
     updatedAt: '2026-09-14',
     content: `Tailored emphasis on 99.99% availability, error budgets, HashiCorp Vault security, and BaFin/ISO 27001 regulatory compliance for N26...`,
     tags: ['Tailored', 'SRE', 'FinTech', 'N26', 'Vault'],
+    sourceEvidenceReferences: [
+      {
+        evidenceId: 'ev-04',
+        claim: 'Compensated on-call rotation and SLO error-budget governance',
+        source: 'N26 Job Specification',
+      },
+      {
+        evidenceId: 'ev-10',
+        claim: 'Maintained 150+ microservices on multi-tenant EKS',
+        source: 'Production SLO Records',
+      },
+    ],
   },
   {
     id: 'doc-cl-zalando',
@@ -75,8 +116,20 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
     version: 'v1.0',
     createdAt: '2026-09-28',
     updatedAt: '2026-09-30',
-    content: `Formal cover letter highlighting developer platform leadership, GitOps at scale, and EU Blue Card relocation intent...`,
+    content: `Formal cover letter highlighting developer platform leadership, GitOps at scale, and EU Blue Card skilled worker relocation intent...`,
     tags: ['Cover Letter', 'Zalando', 'Berlin'],
+    sourceEvidenceReferences: [
+      {
+        evidenceId: 'ev-10',
+        claim: '8 years AWS & multi-tenant Kubernetes with 99.95% SLO track record',
+        source: 'Verified Work History & Production Metrics',
+      },
+      {
+        evidenceId: 'ev-01',
+        claim: 'Visa sponsorship & relocation support verified in portal',
+        source: 'Zalando Careers Portal',
+      },
+    ],
   },
   {
     id: 'doc-qa-germany',
@@ -87,5 +140,18 @@ Results-driven Senior DevOps & Platform Engineer with 8 years of hands-on expert
     updatedAt: '2026-09-25',
     content: `Verified answers for work authorization, notice period, salary benchmarks, and German language learning milestones...`,
     tags: ['Q&A', 'Work Authorization', 'Immigration', 'Blue Card'],
+    sourceEvidenceReferences: [
+      {
+        evidenceId: 'ev-candidate-degree',
+        claim: 'Bachelor of Engineering in CS recognized on Anabin (H+ status)',
+        source: 'ZAB Anabin Database',
+      },
+      {
+        evidenceId: 'ev-10',
+        claim: '8 years continuous production experience',
+        source: 'Work Verification Record',
+      },
+    ],
   },
 ];
+

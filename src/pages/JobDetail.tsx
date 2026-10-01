@@ -143,7 +143,7 @@ export const JobDetail: React.FC = () => {
           <div className="mt-1.5">
             <FitBadge fit={job.salaryFit} size="md" />
           </div>
-          <span className="text-[11px] text-[#64748B] mt-1 block">Meets Blue Card Target</span>
+          <span className="text-[11px] text-[#64748B] mt-1 block">Within Target Compensation Band</span>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
@@ -272,8 +272,13 @@ export const JobDetail: React.FC = () => {
                     "{job.relocationSummary}"
                   </blockquote>
                 </div>
-                <div className="text-[11px] text-[#64748B]">
-                  <strong>Policy Guideline:</strong> Sriram qualifies directly for the German EU Blue Card with an engineering degree and €95K+ compensation.
+                <div className="p-3 bg-slate-50 rounded-lg border border-slate-200/80 text-[11px] text-[#64748B] space-y-1.5">
+                  <div className="font-semibold text-slate-800 flex items-center gap-1.5">
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" /> Statutory Blue Card Immigration Evidence Framework
+                  </div>
+                  <p className="leading-relaxed">
+                    Candidate holds a recognized university degree (Anabin H+ listed) and 8 years of specialized engineering experience. Salary compatibility is one of multiple statutory factors; full eligibility requires binding job contract matching degree field and annual BAMF regulatory threshold verification at application time. No automated legal verdict is implied.
+                  </p>
                 </div>
               </div>
             </Card>
@@ -329,13 +334,22 @@ export const JobDetail: React.FC = () => {
             padding="md"
           >
             <div className="space-y-2 text-xs">
-              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg">
-                <span className="font-bold text-blue-900 block text-sm">
-                  {job.applicationRoute}
-                </span>
-                <p className="text-blue-800 text-[11px] mt-1 leading-relaxed">
+              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-blue-900 block text-xs">
+                    {job.applicationRoute}
+                  </span>
+                  <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                    Evidence-Backed
+                  </span>
+                </div>
+                <p className="text-blue-800 text-[11px] leading-relaxed">
                   {job.routeReason}
                 </p>
+                <div className="pt-2 border-t border-blue-200/70 text-[10px] text-blue-900/80 flex items-center justify-between">
+                  <span>Routing Strategy: Dual-Track</span>
+                  <span>ATS Gateway: Active</span>
+                </div>
               </div>
               <Button
                 variant="primary"
@@ -353,7 +367,7 @@ export const JobDetail: React.FC = () => {
             header={
               <div className="flex items-center justify-between w-full">
                 <span className="font-bold text-xs text-[#0F172A] uppercase tracking-wider">
-                  Referral & Hiring Contacts
+                  Potential Referral & Hiring Contacts
                 </span>
                 <span className="text-[11px] font-semibold text-blue-600 cursor-pointer" onClick={() => navigate('/contacts')}>
                   All ({contacts.length})

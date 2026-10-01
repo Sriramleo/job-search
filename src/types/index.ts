@@ -201,6 +201,47 @@ export interface ApplicationAnswer {
   required: boolean;
 }
 
+export type ClaimVerificationStatus =
+  | 'Verified'
+  | 'Supported by Profile'
+  | 'Needs Attestation / Flagged';
+
+export interface ApplicationClaim {
+  id: string;
+  claimText: string;
+  materialType: 'coverLetter' | 'cv' | 'answer';
+  sourceEvidenceId?: string;
+  sourceEvidenceSummary?: string;
+  status: ClaimVerificationStatus;
+  flagReason?: string;
+  confidenceScore?: 'High' | 'Medium' | 'Low';
+}
+
+export interface StatutoryImmigrationParameter {
+  id: string;
+  criterion: string;
+  legalBasis: string;
+  status: EvidenceStatus;
+  source: string;
+  verificationDate: string;
+  verificationNotes: string;
+  candidateEvidenceSummary: string;
+}
+
+export interface AIProviderConfig {
+  id: string;
+  name: string;
+  providerType: 'gemini' | 'claude' | 'openai' | 'local_ollama' | 'mock_engine';
+  selectedModel: string;
+  availableModels: string[];
+  purpose: string;
+  enabled: boolean;
+  temperature: number;
+  maxTokens: number;
+  status: 'Connected' | 'Standby' | 'Configured';
+  customEndpoint?: string;
+}
+
 export interface Application {
   id: string;
   jobId: string;
@@ -222,6 +263,7 @@ export interface Application {
   answers: ApplicationAnswer[];
   referralMessageDraft: string;
   recruiterMessageDraft: string;
+  claims?: ApplicationClaim[];
   validationChecklist: {
     correctJob: boolean;
     correctCompany: boolean;
@@ -247,6 +289,11 @@ export interface Document {
   updatedAt: string;
   content: string;
   tags: string[];
+  sourceEvidenceReferences?: {
+    evidenceId: string;
+    claim: string;
+    source: string;
+  }[];
 }
 
 export interface Interview {

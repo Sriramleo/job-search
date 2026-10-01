@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       group: 'SYSTEM',
       items: [
         { label: 'Settings', path: '/settings', icon: Settings },
-        { label: 'Automation', path: '/automation', icon: Cpu, badge: '5 Jobs' },
+        { label: 'Automation', path: '/automation', icon: Cpu, badge: 'Active' },
       ],
     },
   ];
@@ -168,12 +168,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
             <div className="flex items-center justify-between text-xs">
               <span className="font-medium text-[#0F172A]">Germany Relocation</span>
               <span className="px-1.5 py-0.2 text-[10px] font-semibold rounded bg-emerald-100 text-emerald-800">
-                EU Blue Card
+                Skilled Worker / Blue Card
               </span>
             </div>
             <div className="mt-1 flex items-center justify-between text-[11px] text-[#64748B]">
               <span>German Level: A1</span>
-              <span>Min: €80K+</span>
+              <span>Target: €80K+</span>
             </div>
           </div>
         </div>

@@ -120,3 +120,24 @@ export const AutomationBadge: React.FC<{ state: AutomationState }> = ({ state })
     </Badge>
   );
 };
+
+export const ClaimBadge: React.FC<{
+  status: 'Verified' | 'Supported by Profile' | 'Needs Attestation / Flagged';
+  size?: 'sm' | 'md';
+}> = ({ status, size = 'sm' }) => {
+  const map: Record<string, { variant: BadgeProps['variant']; icon: string }> = {
+    Verified: { variant: 'green', icon: '✓' },
+    'Supported by Profile': { variant: 'blue', icon: '•' },
+    'Needs Attestation / Flagged': { variant: 'amber', icon: '⚠' },
+  };
+
+  const config = map[status] || map['Needs Attestation / Flagged'];
+
+  return (
+    <Badge variant={config.variant} size={size}>
+      <span className="mr-1 text-[11px] font-bold">{config.icon}</span>
+      {status}
+    </Badge>
+  );
+};
+

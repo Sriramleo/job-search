@@ -9,6 +9,7 @@ import {
   Archive,
   Layers,
   Sparkles,
+  ShieldCheck,
 } from 'lucide-react';
 import { documentsApi } from '../api';
 import { Document } from '../types';
@@ -114,6 +115,19 @@ export const Documents: React.FC = () => {
                 {doc.content}
               </div>
 
+              {/* Source Evidence Lineage */}
+              {doc.sourceEvidenceReferences && doc.sourceEvidenceReferences.length > 0 && (
+                <div className="p-2 bg-blue-50/60 rounded-lg border border-blue-100 text-[11px] text-blue-900 flex items-center justify-between">
+                  <span className="flex items-center gap-1 font-medium">
+                    <ShieldCheck className="w-3.5 h-3.5 text-blue-600" />
+                    {doc.sourceEvidenceReferences.length} Evidence Sources
+                  </span>
+                  <span className="text-[10px] text-blue-700 font-mono">
+                    Traceable Lineage
+                  </span>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-1">
                 {doc.tags.map((t) => (
                   <span key={t} className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600 font-medium">
@@ -151,7 +165,7 @@ export const Documents: React.FC = () => {
         ))}
       </div>
 
-      {/* Document View Modal */}
+      {/* Document View Modal with Evidence Lineage */}
       {previewDoc && (
         <Modal
           isOpen={!!previewDoc}
@@ -175,8 +189,32 @@ export const Documents: React.FC = () => {
             </div>
           }
         >
-          <div className="max-h-[60vh] overflow-y-auto p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono whitespace-pre-wrap leading-relaxed text-slate-800">
-            {previewDoc.content}
+          <div className="space-y-4">
+            {/* Evidence Lineage Section */}
+            {previewDoc.sourceEvidenceReferences && previewDoc.sourceEvidenceReferences.length > 0 && (
+              <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2 text-xs">
+                <div className="font-semibold text-blue-900 flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-blue-600" /> Source Evidence Lineage & Backing
+                </div>
+                <div className="space-y-1.5">
+                  {previewDoc.sourceEvidenceReferences.map((ref, idx) => (
+                    <div key={idx} className="p-2 bg-white rounded-lg border border-blue-100 flex items-start justify-between text-[11px]">
+                      <div>
+                        <span className="font-medium text-slate-800 block">"{ref.claim}"</span>
+                        <span className="text-slate-500 text-[10px]">Source: {ref.source}</span>
+                      </div>
+                      <span className="text-[10px] text-blue-700 font-mono font-semibold ml-2 shrink-0">
+                        #{ref.evidenceId}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="max-h-[50vh] overflow-y-auto p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs font-mono whitespace-pre-wrap leading-relaxed text-slate-800">
+              {previewDoc.content}
+            </div>
           </div>
         </Modal>
       )}

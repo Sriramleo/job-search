@@ -20,7 +20,7 @@ export const mockJobs: Job[] = [
     relocationSummary: 'Official full visa sponsorship & €5,000 relocation stipend confirmed in careers portal.',
     germanRequirement: 'None',
     applicationRoute: 'Referral + Official ATS',
-    routeReason: '2 2nd-degree connections in Platform Org; warm referral yields 3x faster recruiter response.',
+    routeReason: 'Potential referral contact Dr. Florian Becker identified. Primary path is official ATS application, accompanied by drafted referral outreach for human review.',
     status: 'Ready',
     postedDate: '2026-09-24',
     source: 'Company Career Site',

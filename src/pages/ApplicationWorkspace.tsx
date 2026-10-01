@@ -24,11 +24,12 @@ import {
   CandidateEvidence,
   Document,
   AutomationState,
+  ApplicationClaim,
 } from '../types';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Tabs } from '../components/ui/Tabs';
-import { FitBadge, AutomationBadge, Badge } from '../components/ui/Badge';
+import { FitBadge, AutomationBadge, Badge, ClaimBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { ValidationChecklist } from '../components/applications/ValidationChecklist';
 import { LoadingSkeleton, ErrorState } from '../components/ui/FeedbackStates';
@@ -45,7 +46,8 @@ export const ApplicationWorkspace: React.FC = () => {
   const [candidate, setCandidate] = useState<Candidate | null>(null);
   const [candidateEvidence, setCandidateEvidence] = useState<CandidateEvidence[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
-  const [activeTab, setActiveTab] = useState<'cv' | 'coverLetter' | 'answers' | 'referral' | 'recruiter'>('coverLetter');
+  const [claims, setClaims] = useState<ApplicationClaim[]>([]);
+  const [activeTab, setActiveTab] = useState<'cv' | 'coverLetter' | 'answers' | 'referral' | 'recruiter' | 'claims'>('coverLetter');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -86,6 +88,7 @@ export const ApplicationWorkspace: React.FC = () => {
           setRecruiterText(app.recruiterMessageDraft);
           setAnswersList(app.answers);
           setChecklist(app.validationChecklist);
+          setClaims(app.claims || []);
 
           const [foundJob, cand, candEv, docs] = await Promise.all([
             jobsApi.getJob(app.jobId),
@@ -105,6 +108,21 @@ export const ApplicationWorkspace: React.FC = () => {
     };
     loadWorkspace();
   }, [appId]);
+
+  const handleAttestClaim = (claimId: string) => {
+    setClaims((prev) =>
+      prev.map((c) =>
+        c.id === claimId
+          ? {
+              ...c,
+              status: 'Verified',
+              flagReason: undefined,
+              sourceEvidenceSummary: 'Attested by candidate from production logs',
+            }
+          : c
+      )
+    );
+  };
 
   if (isLoading) {
     return <LoadingSkeleton lines={10} />;
@@ -242,16 +260,29 @@ export const ApplicationWorkspace: React.FC = () => {
             padding="sm"
           >
             <div className="space-y-3 p-1 text-xs">
-              <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg">
-                <span className="text-[11px] font-semibold text-blue-900 block">
-                  Recommended Route
-                </span>
-                <span className="font-medium text-blue-950 text-xs mt-0.5 block">
+              <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-semibold text-blue-900 block">
+                    Recommended Route
+                  </span>
+                  <Badge variant="blue" size="sm">Evidence-Backed</Badge>
+                </div>
+                <span className="font-bold text-blue-950 text-xs block">
                   {job.applicationRoute}
                 </span>
-                <p className="text-[11px] text-blue-700 mt-1 leading-normal">
+                <p className="text-[11px] text-blue-800 leading-normal">
                   {job.routeReason}
                 </p>
+                <div className="pt-2 border-t border-blue-200/60 text-[10px] text-blue-900 space-y-0.5">
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">Referral Status:</span>
+                    <span className="font-semibold text-amber-700">Potential (Unverified)</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-blue-700">Human Gate:</span>
+                    <span className="font-medium text-emerald-700">Mandatory Verification</span>
+                  </div>
+                </div>
               </div>
 
               <div>
@@ -298,6 +329,7 @@ export const ApplicationWorkspace: React.FC = () => {
                   { id: 'answers', label: 'Questions & Answers', count: answersList.length },
                   { id: 'referral', label: 'Referral Msg' },
                   { id: 'recruiter', label: 'Recruiter Msg' },
+                  { id: 'claims', label: 'Claim Audit', count: claims.length, icon: <ShieldCheck className="w-3.5 h-3.5" /> },
                 ]}
                 activeTab={activeTab}
                 onChange={(t) => setActiveTab(t as any)}
@@ -329,6 +361,28 @@ export const ApplicationWorkspace: React.FC = () => {
                       Copy
                     </Button>
                   </div>
+                </div>
+
+                {/* Claim Trace Summary Callout */}
+                <div className="p-2.5 bg-blue-50/70 border border-blue-100 rounded-lg flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
+                    <span className="text-blue-900 font-medium text-[11px]">
+                      {claims.filter((c) => c.status === 'Verified' || c.status === 'Supported by Profile').length} claims verified against candidate evidence.
+                      {claims.some((c) => c.status === 'Needs Attestation / Flagged') && (
+                        <span className="text-amber-700 font-semibold ml-1">
+                          (1 claim flagged for candidate attestation)
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('claims')}
+                    className="text-[11px] font-semibold text-blue-700 hover:text-blue-900 underline"
+                  >
+                    Inspect Claims →
+                  </button>
                 </div>
 
                 <textarea
@@ -488,6 +542,96 @@ export const ApplicationWorkspace: React.FC = () => {
                 />
               </div>
             )}
+
+            {/* TAB 6: CLAIM-LEVEL EVIDENCE AUDIT */}
+            {activeTab === 'claims' && (
+              <div className="p-5 space-y-4">
+                <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+                  <div>
+                    <h3 className="text-xs font-bold text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                      Claim-Level Evidence Inspector
+                    </h3>
+                    <span className="text-[11px] text-[#64748B]">
+                      Every factual assertion in generated materials mapped to primary candidate evidence
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">
+                      {claims.filter((c) => c.status === 'Verified').length} Verified
+                    </span>
+                    <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800">
+                      {claims.filter((c) => c.status === 'Supported by Profile').length} Supported
+                    </span>
+                    {claims.some((c) => c.status === 'Needs Attestation / Flagged') && (
+                      <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                        {claims.filter((c) => c.status === 'Needs Attestation / Flagged').length} Flagged
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  {claims.map((claim) => (
+                    <div
+                      key={claim.id}
+                      className={`p-3.5 rounded-xl border text-xs transition-all ${
+                        claim.status === 'Needs Attestation / Flagged'
+                          ? 'bg-amber-50/50 border-amber-200'
+                          : 'bg-slate-50/70 border-slate-200/80'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] uppercase font-bold text-slate-500 tracking-wider bg-white px-1.5 py-0.2 rounded border border-slate-200">
+                              {claim.materialType === 'coverLetter' ? 'Cover Letter' : claim.materialType === 'cv' ? 'CV Variant' : 'Q&A Answer'}
+                            </span>
+                            <ClaimBadge status={claim.status} />
+                          </div>
+                          <blockquote className="font-medium text-slate-900 italic text-[11px] leading-relaxed pt-1">
+                            "{claim.claimText}"
+                          </blockquote>
+                        </div>
+                        {claim.status === 'Needs Attestation / Flagged' && (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => handleAttestClaim(claim.id)}
+                            icon={<Check className="w-3.5 h-3.5 text-emerald-600" />}
+                            className="shrink-0 text-xs"
+                          >
+                            Attest
+                          </Button>
+                        )}
+                      </div>
+
+                      <div className="mt-2.5 pt-2 border-t border-slate-200/60 text-[11px]">
+                        {claim.status === 'Needs Attestation / Flagged' ? (
+                          <div className="text-amber-800 bg-amber-100/70 p-2 rounded-lg flex items-start gap-1.5">
+                            <AlertTriangle className="w-3.5 h-3.5 text-amber-700 shrink-0 mt-0.5" />
+                            <span>
+                              <strong>Flag Reason:</strong> {claim.flagReason}
+                            </span>
+                          </div>
+                        ) : (
+                          <div className="text-[#64748B] flex items-center justify-between">
+                            <span>
+                              <strong className="text-slate-700">Source:</strong> {claim.sourceEvidenceSummary}
+                            </span>
+                            {claim.sourceEvidenceId && (
+                              <span className="text-[10px] text-blue-600 font-mono">
+                                #{claim.sourceEvidenceId}
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -498,6 +642,63 @@ export const ApplicationWorkspace: React.FC = () => {
             checklist={checklist}
             onToggleItem={handleToggleChecklistItem}
           />
+
+          {/* CLAIM EVIDENCE AUDIT HEALTH */}
+          <Card
+            header={
+              <div className="flex items-center justify-between w-full">
+                <span className="font-bold text-xs text-[#0F172A] uppercase tracking-wider">
+                  Claim-Level Audit
+                </span>
+                <span
+                  className="text-[11px] text-blue-600 font-semibold cursor-pointer"
+                  onClick={() => setActiveTab('claims')}
+                >
+                  Inspect ({claims.length})
+                </span>
+              </div>
+            }
+            padding="sm"
+          >
+            <div className="space-y-1.5 p-1 text-xs">
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Verified by Evidence:</span>
+                <span className="font-bold text-emerald-700">
+                  {claims.filter((c) => c.status === 'Verified').length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Supported by Profile:</span>
+                <span className="font-bold text-blue-700">
+                  {claims.filter((c) => c.status === 'Supported by Profile').length}
+                </span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-[#64748B]">Needs Attestation:</span>
+                <span
+                  className={`font-bold ${
+                    claims.some((c) => c.status === 'Needs Attestation / Flagged')
+                      ? 'text-amber-700'
+                      : 'text-slate-400'
+                  }`}
+                >
+                  {claims.filter((c) => c.status === 'Needs Attestation / Flagged').length}
+                </span>
+              </div>
+              {claims.some((c) => c.status === 'Needs Attestation / Flagged') && (
+                <div className="mt-1 pt-1.5 border-t border-amber-200/60 text-[11px] text-amber-800 bg-amber-50 p-2 rounded-lg flex items-center justify-between">
+                  <span>1 unverified claim</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab('claims')}
+                    className="font-bold underline text-amber-900"
+                  >
+                    Attest →
+                  </button>
+                </div>
+              )}
+            </div>
+          </Card>
 
           {/* CANDIDATE & COMPANY EVIDENCE SNIPPETS */}
           <Card
