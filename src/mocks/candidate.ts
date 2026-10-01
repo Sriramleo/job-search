@@ -1,0 +1,81 @@
+import { Candidate, CandidateEvidence } from '../types';
+
+export const mockCandidate: Candidate = {
+  id: 'cand-001',
+  name: 'Sriram Sugavanam',
+  currentRole: 'Senior DevOps Engineer',
+  experienceYears: 8,
+  skills: [
+    'Kubernetes / EKS / K8s Administration',
+    'AWS Cloud Architecture',
+    'Terraform & Infrastructure as Code (IaC)',
+    'GitOps (ArgoCD, Flux)',
+    'CI/CD Pipelines (GitHub Actions, GitLab CI)',
+    'Prometheus, Grafana, Thanos Observability',
+    'Linux System Administration & Networking',
+    'Python & Bash Automation',
+    'Docker & Container Security',
+    'Helm Chart Packaging',
+  ],
+  leadershipExperience: 'Led cross-functional platform modernization initiatives, mentored 4 junior/mid engineers, owned SLA/SLO standards for core production clusters.',
+  languages: [
+    { language: 'English', level: 'Fluent (Full Professional)' },
+    { language: 'German', level: 'A1 (Currently learning)' },
+  ],
+  education: 'Bachelor of Engineering in Computer Science',
+  targetRoles: [
+    'Senior DevOps Engineer',
+    'Lead DevOps Engineer',
+    'Senior Cloud Engineer',
+    'Lead Cloud Engineer',
+    'Platform Engineer',
+    'Lead Platform Engineer',
+    'Kubernetes Engineer',
+    'Senior SRE',
+    'Lead SRE',
+  ],
+  targetCountry: 'Germany',
+  targetMinimumSalary: 80000,
+  blueCardObjective: true,
+  germanLevel: 'A1',
+  email: 'sriramsugavanams@gmail.com',
+  location: 'Chennai, India (Actively relocating to Germany)',
+};
+
+export const mockCandidateEvidence: CandidateEvidence[] = [
+  {
+    id: 'ce-01',
+    skillOrCapability: 'Production Kubernetes (EKS & Bare-Metal k0s)',
+    evidenceSummary: 'Architected and operated multi-tenant Kubernetes clusters running 150+ microservices with 99.95% uptime SLOs.',
+    impactMetric: '99.95% Uptime, 40% reduction in cluster deployment drift',
+    verifiedInProjects: ['Enterprise EKS Migration', 'Homelab GitOps k0s Cluster'],
+  },
+  {
+    id: 'ce-02',
+    skillOrCapability: 'Terraform & Infrastructure as Code',
+    evidenceSummary: 'Authored modular, reusable Terraform modules for AWS VPC, Transit Gateway, IAM RBAC, and EKS node group lifecycle.',
+    impactMetric: 'Zero unmanaged AWS resources, 60% faster environment provisioning',
+    verifiedInProjects: ['Global Cloud Core IaC', 'Multi-region VPC Peering'],
+  },
+  {
+    id: 'ce-03',
+    skillOrCapability: 'GitOps & Delivery Automation',
+    evidenceSummary: 'Implemented declarative GitOps delivery using ArgoCD, Helm, SOPS encrypted secrets, and automated preview environments.',
+    impactMetric: 'Deployment frequency increased from weekly to 18 deployments/day',
+    verifiedInProjects: ['ArgoCD Homelab GitOps', 'Continuous Deployment Revamp'],
+  },
+  {
+    id: 'ce-04',
+    skillOrCapability: 'Observability & Incident Reliability',
+    evidenceSummary: 'Engineered unified monitoring stack using Prometheus, Grafana, Traefik metrics, and PagerDuty alert routing.',
+    impactMetric: 'MTTR reduced by 45% through synthetic probe dashboards',
+    verifiedInProjects: ['Observability Core Pipeline', 'SLO Dashboard Standard'],
+  },
+  {
+    id: 'ce-05',
+    skillOrCapability: 'Technical Leadership & Mentorship',
+    evidenceSummary: 'Spearheaded DevOps guild, established infrastructure review RFC standards, and ran weekly blameless post-mortem reviews.',
+    impactMetric: 'Trained 12 developers on K8s debugging; eliminated repeat outages',
+    verifiedInProjects: ['Platform Engineering Guild', 'DevOps Onboarding Track'],
+  },
+];
