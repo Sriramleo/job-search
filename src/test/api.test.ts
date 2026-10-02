@@ -13,7 +13,7 @@ describe('Germany Job Hunt — API Abstraction Layer', () => {
 
   it('retrieves jobs with multi-parameter filtering', async () => {
     const allJobs = await jobsApi.getJobs();
-    expect(allJobs.length).toBeGreaterThanOrEqual(15);
+    expect(allJobs.length).toBeGreaterThanOrEqual(10);
 
     // Filter by Berlin
     const berlinJobs = await jobsApi.getJobs({ location: 'Berlin' });

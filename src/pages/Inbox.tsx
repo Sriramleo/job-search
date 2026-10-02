@@ -14,6 +14,7 @@ import {
   ExternalLink,
   ChevronRight,
   Paperclip,
+  Copy,
 } from 'lucide-react';
 import { communicationsApi } from '../api';
 import { Communication } from '../types';
@@ -215,17 +216,38 @@ export const Inbox: React.FC = () => {
                     rows={5}
                     className="w-full p-3 bg-white border border-purple-200 rounded-lg font-sans text-slate-800 focus:outline-none focus:border-purple-500 leading-relaxed"
                   />
-                  <div className="flex justify-end gap-2 pt-1">
+                  <div className="flex flex-wrap items-center justify-end gap-2 pt-1">
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => {
+                        navigator.clipboard.writeText(replyText);
+                        alert('Draft copied to clipboard!');
+                      }}
+                      icon={<Copy className="w-3.5 h-3.5" />}
+                    >
+                      Copy Draft
+                    </Button>
+                    <a
+                      href="https://mail.google.com"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-lg border border-[#E2E8F0] bg-white text-[#475569] hover:bg-slate-50 transition-colors"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                      <span>Open Gmail</span>
+                    </a>
                     <Button
                       variant="primary"
                       size="sm"
                       onClick={() => {
-                        navigator.clipboard.writeText(replyText);
-                        alert('Reply copied to clipboard to paste into Gmail!');
+                        if (window.confirm('Have you manually sent this response in Gmail?')) {
+                          alert('Marked as sent externally.');
+                        }
                       }}
-                      icon={<Send className="w-3.5 h-3.5" />}
+                      icon={<CheckCircle2 className="w-3.5 h-3.5" />}
                     >
-                      Copy & Send via Gmail
+                      Mark as Sent
                     </Button>
                   </div>
                 </div>

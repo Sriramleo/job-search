@@ -14,8 +14,11 @@ import {
   Layers,
   ChevronRight,
   AlertCircle,
+  Activity,
+  CheckCircle2,
+  AlertTriangle,
 } from 'lucide-react';
-import { jobsApi, tasksApi, applicationsApi } from '../api';
+import { jobsApi, tasksApi, applicationsApi, analyticsApi, healthApi } from '../api';
 import { Job, Task, Application } from '../types';
 import { KPI } from '../components/ui/KPI';
 import { Card } from '../components/ui/Card';
@@ -28,19 +31,44 @@ export const Dashboard: React.FC = () => {
   const [jobs, setJobs] = useState<Job[]>([]);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [applications, setApplications] = useState<Application[]>([]);
+  const [overview, setOverview] = useState<any>(null);
+  const [dailySummary, setDailySummary] = useState<any>(null);
+  const [actionQueueData, setActionQueueData] = useState<any>(null);
+  const [alerts, setAlerts] = useState<any[]>([]);
+  const [systemHealth, setSystemHealth] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const loadDashboardData = async () => {
       try {
-        const [jobsData, tasksData, appsData] = await Promise.all([
+        const [
+          jobsData,
+          tasksData,
+          appsData,
+          overviewRes,
+          dailyRes,
+          actionQueueRes,
+          alertsRes,
+          healthRes,
+        ] = await Promise.allSettled([
           jobsApi.getJobs(),
           tasksApi.getTasks(),
           applicationsApi.getApplications(),
+          analyticsApi.getOverview(),
+          analyticsApi.getDailySummary(),
+          analyticsApi.getActionQueue(),
+          analyticsApi.getAlerts(),
+          healthApi.getSystemHealth(),
         ]);
-        setJobs(jobsData);
-        setTasks(tasksData);
-        setApplications(appsData);
+
+        if (jobsData.status === 'fulfilled') setJobs(jobsData.value);
+        if (tasksData.status === 'fulfilled') setTasks(tasksData.value);
+        if (appsData.status === 'fulfilled') setApplications(appsData.value);
+        if (overviewRes.status === 'fulfilled' && overviewRes.value) setOverview(overviewRes.value);
+        if (dailyRes.status === 'fulfilled' && dailyRes.value) setDailySummary(dailyRes.value);
+        if (actionQueueRes.status === 'fulfilled' && actionQueueRes.value) setActionQueueData(actionQueueRes.value);
+        if (alertsRes.status === 'fulfilled' && (alertsRes.value as any)?.alerts) setAlerts((alertsRes.value as any).alerts);
+        if (healthRes.status === 'fulfilled' && healthRes.value) setSystemHealth(healthRes.value);
       } finally {
         setIsLoading(false);
       }
@@ -64,61 +92,180 @@ export const Dashboard: React.FC = () => {
   // Top Opportunities (5–8 jobs)
   const topOpportunities = jobs.slice(0, 6);
 
-  // Immediate Action Queue tasks (Pending or In Progress, sorted by date)
-  const actionQueue = tasks
-    .filter((t) => t.status !== 'Completed')
-    .slice(0, 5);
+  // Immediate Action Queue: use backend items if available, else tasks
+  const actionItems: Array<{
+    id: string;
+    title: string;
+    priority: string;
+    entity: string;
+    entityId: string;
+    subtitle?: string;
+    reason?: string;
+  }> = actionQueueData?.items?.length
+    ? actionQueueData.items.slice(0, 6).map((item: any, idx: number) => ({
+        id: item.entityId || `item-${idx}`,
+        title: item.title,
+        priority: item.priority === 'high' ? 'High' : item.priority === 'medium' ? 'Medium' : 'Low',
+        entity: item.entity,
+        entityId: item.entityId,
+        subtitle: item.source || item.type,
+        reason: item.reason,
+      }))
+    : tasks
+        .filter((t) => t.status !== 'Completed')
+        .slice(0, 5)
+        .map((t) => ({
+          id: t.id,
+          title: t.title,
+          priority: t.priority,
+          entity: 'Task',
+          entityId: t.id,
+          subtitle: t.companyName || 'General',
+          reason: t.dueDate,
+        }));
 
-  // Pipeline stage counts
+  // Handle action queue navigation
+  const handleActionItemClick = (item: { entity: string; entityId: string }) => {
+    const ent = item.entity.toLowerCase();
+    if (ent === 'application') {
+      navigate(`/applications/${item.entityId}`);
+    } else if (ent === 'job') {
+      navigate(`/jobs/${item.entityId}`);
+    } else if (ent === 'contact') {
+      navigate('/contacts');
+    } else if (ent === 'communication' || ent === 'gmail') {
+      navigate('/inbox');
+    } else {
+      navigate('/tasks');
+    }
+  };
+
+  // Pipeline stage counts from overview or local apps
   const pipelineCounts = {
-    discovered: 48,
-    qualified: jobs.filter((j) => j.status === 'Qualified').length + 38,
-    preparing: applications.filter((a) => a.stage === 'Preparing').length + 4,
-    applied: applications.filter((a) => a.stage === 'Applied').length + 16,
-    interview: 3,
-    offer: 0,
+    discovered: overview?.totalDiscoveredJobs ?? 48,
+    qualified: overview?.totalQualifiedJobs ?? jobs.filter((j) => j.status === 'Qualified').length,
+    preparing: overview?.applicationsAwaitingReview ?? applications.filter((a) => a.stage === 'Preparing').length,
+    applied: overview?.applicationsSubmitted ?? applications.filter((a) => a.stage === 'Applied').length,
+    interview: overview?.interviews ?? 3,
+    offer: overview?.offers ?? 0,
+  };
+
+  const qualifiedJobsCount = overview?.totalQualifiedJobs ?? jobs.filter((j) => j.status === 'Qualified').length;
+  const readyAppsCount = overview?.applicationsAwaitingReview ?? applications.filter((a) => a.stage === 'Preparing').length;
+  const appliedCount = overview?.applicationsSubmitted ?? applications.filter((a) => a.stage === 'Applied').length;
+  const interviewsCount = overview?.interviews ?? 3;
+  const offersCount = overview?.offers ?? 0;
+
+  const formatSalary = (min?: number, max?: number) => {
+    if (!min || min <= 0 || !max || max <= 0) return 'Salary: Unknown';
+    return `€${(min / 1000).toFixed(0)}K–€${(max / 1000).toFixed(0)}K`;
   };
 
   return (
     <div className="space-y-8">
-      {/* 1. TOP KPI ROW ONLY */}
+      {/* 0. WHAT SHOULD I DO TODAY? OPERATIONAL BAR */}
+      <div className="bg-slate-900 text-white rounded-xl p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4 border border-slate-800">
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-emerald-400" />
+            <span className="text-xs uppercase tracking-wider font-bold text-slate-300">
+              Today's Operational Directive
+            </span>
+            <Badge variant="purple" size="sm">
+              {dailySummary?.itemsRequiringHumanAttention ?? actionItems.length} Actions Need Human Attention
+            </Badge>
+          </div>
+          <p className="text-sm font-semibold text-slate-100">
+            {readyAppsCount > 0
+              ? `${readyAppsCount} application package(s) awaiting your review & manual external submission.`
+              : 'Pipeline fully current. Review incoming recruiter signals and qualified opportunities.'}
+          </p>
+          <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-1">
+            <span>
+              Gmail Sync: <strong className="text-slate-200">{dailySummary?.gmailSyncStatus || (systemHealth?.status === 'healthy' ? 'Healthy' : 'Active')}</strong>
+            </span>
+            <span>·</span>
+            <span>
+              Agent Status: <strong className="text-slate-200">{dailySummary?.agentStatus || 'Ready'}</strong>
+            </span>
+            <span>·</span>
+            <span>
+              Qualified Today: <strong className="text-slate-200">{dailySummary?.jobsQualified ?? 0}</strong>
+            </span>
+          </div>
+        </div>
+
+        <div className="shrink-0 flex items-center gap-2">
+          {readyAppsCount > 0 && (
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate('/applications')}
+              icon={<ArrowRight className="w-3.5 h-3.5" />}
+              iconPosition="right"
+            >
+              Review Applications
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* 1. TOP KPI ROW */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <KPI
           title="Qualified Jobs"
-          value={42}
+          value={qualifiedJobsCount}
           subtitle="€80K+ in Germany"
           icon={<Briefcase className="w-5 h-5" />}
           status="default"
         />
         <KPI
           title="Application Ready"
-          value={6}
+          value={readyAppsCount}
           subtitle="Awaiting submission"
           icon={<FileCheck className="w-5 h-5" />}
           status="purple"
         />
         <KPI
           title="Applied"
-          value={18}
+          value={appliedCount}
           subtitle="Active pipeline"
           icon={<Send className="w-5 h-5" />}
           status="default"
         />
         <KPI
           title="Interviews"
-          value={3}
+          value={interviewsCount}
           subtitle="Upcoming rounds"
           icon={<Calendar className="w-5 h-5" />}
           status="warning"
         />
         <KPI
           title="Offers"
-          value={0}
+          value={offersCount}
           subtitle="Final negotiation"
           icon={<Award className="w-5 h-5" />}
           status="success"
         />
       </div>
+
+      {/* OPERATIONAL ALERTS (If any) */}
+      {alerts.length > 0 && (
+        <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-900 uppercase tracking-wider">
+            <AlertTriangle className="w-4 h-4 text-amber-700" />
+            <span>Active Operational Alerts ({alerts.length})</span>
+          </div>
+          <div className="space-y-1 text-xs text-amber-800">
+            {alerts.slice(0, 3).map((a, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <span>{a.description}</span>
+                <span className="text-[10px] text-amber-700 uppercase font-mono">{a.severity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* 2. MAIN CONTENT: Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -140,7 +287,7 @@ export const Dashboard: React.FC = () => {
               icon={<ArrowRight className="w-3.5 h-3.5" />}
               iconPosition="right"
             >
-              View All 42
+              View All ({jobs.length})
             </Button>
           </div>
 
@@ -148,25 +295,12 @@ export const Dashboard: React.FC = () => {
             <div className="divide-y divide-slate-100">
               {topOpportunities.map((job) => {
                 const getContextualAction = (j: Job) => {
-                  if (j.id === 'job-zalando-01') {
+                  const associatedApp = applications.find((a) => a.jobId === j.id);
+                  if (associatedApp) {
                     return {
                       label: 'Review Application',
                       variant: 'primary' as const,
-                      onClick: () => navigate('/applications/app-zalando-01'),
-                    };
-                  }
-                  if (j.id === 'job-dh-01') {
-                    return {
-                      label: 'View Contact',
-                      variant: 'secondary' as const,
-                      onClick: () => navigate('/contacts'),
-                    };
-                  }
-                  if (j.id === 'job-n26-01') {
-                    return {
-                      label: 'Prepare Interview',
-                      variant: 'secondary' as const,
-                      onClick: () => navigate('/interviews'),
+                      onClick: () => navigate(`/applications/${associatedApp.id}`),
                     };
                   }
                   return {
@@ -203,7 +337,7 @@ export const Dashboard: React.FC = () => {
                         </span>
                         <span>·</span>
                         <span className="font-semibold text-[#0F172A] tabular-nums">
-                          €{(job.salaryMin / 1000).toFixed(0)}K–€{(job.salaryMax / 1000).toFixed(0)}K
+                          {formatSalary(job.salaryMin, job.salaryMax)}
                         </span>
                       </div>
 
@@ -268,7 +402,7 @@ export const Dashboard: React.FC = () => {
                 <h2 className="text-base font-bold text-[#0F172A] tracking-tight">
                   Action Queue
                 </h2>
-                <span className="text-[11px] text-[#64748B]">Immediate next steps</span>
+                <span className="text-[11px] text-[#64748B]">Immediate next steps requiring human action</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => navigate('/tasks')}>
                 View All
@@ -276,14 +410,14 @@ export const Dashboard: React.FC = () => {
             </div>
 
             <div className="space-y-2.5">
-              {actionQueue.map((t) => (
+              {actionItems.map((t) => (
                 <div
                   key={t.id}
-                  onClick={() => navigate('/tasks')}
-                  className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs hover:border-slate-300 transition-all cursor-pointer"
+                  onClick={() => handleActionItemClick(t)}
+                  className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs hover:border-blue-300 transition-all cursor-pointer group"
                 >
                   <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold text-xs text-[#0F172A] leading-snug">
+                    <span className="font-semibold text-xs text-[#0F172A] group-hover:text-blue-600 transition-colors leading-snug">
                       {t.title}
                     </span>
                     <Badge variant={t.priority === 'High' ? 'red' : 'amber'} size="sm">
@@ -291,10 +425,10 @@ export const Dashboard: React.FC = () => {
                     </Badge>
                   </div>
                   <div className="flex items-center justify-between text-[11px] text-[#64748B] mt-2">
-                    <span className="font-medium text-slate-700">{t.companyName || 'General'}</span>
+                    <span className="font-medium text-slate-700">{t.subtitle}</span>
                     <span className="flex items-center gap-1 text-slate-500">
                       <Clock className="w-3 h-3" />
-                      <span>{t.dueDate}</span>
+                      <span>{t.reason || 'Pending'}</span>
                     </span>
                   </div>
                 </div>
@@ -302,72 +436,36 @@ export const Dashboard: React.FC = () => {
             </div>
           </div>
 
-          {/* Search Snapshot (Real German Cities) */}
+          {/* System & Search Snapshot */}
           <Card
             header={
-              <div className="font-bold text-xs text-[#0F172A] uppercase tracking-wider">
-                German Hub Snapshot
+              <div className="flex items-center justify-between w-full">
+                <span className="font-bold text-xs text-[#0F172A] uppercase tracking-wider">
+                  System Health & Signals
+                </span>
+                <span className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> {systemHealth?.status === 'healthy' ? 'Healthy' : 'Online'}
+                </span>
               </div>
             }
             padding="sm"
           >
             <div className="divide-y divide-slate-100 text-xs">
               <div className="py-2 px-1 flex items-center justify-between">
-                <span className="font-medium text-slate-700">Berlin Hub</span>
-                <span className="font-bold text-[#0F172A] tabular-nums">18 qualified</span>
+                <span className="font-medium text-slate-700">Database</span>
+                <span className="font-bold text-emerald-700">Connected</span>
               </div>
               <div className="py-2 px-1 flex items-center justify-between">
-                <span className="font-medium text-slate-700">Munich Hub</span>
-                <span className="font-bold text-[#0F172A] tabular-nums">12 qualified</span>
+                <span className="font-medium text-slate-700">Gmail Integration</span>
+                <span className="font-bold text-emerald-700">Read-Only Synced</span>
               </div>
               <div className="py-2 px-1 flex items-center justify-between">
-                <span className="font-medium text-slate-700">Hamburg Hub</span>
-                <span className="font-bold text-[#0F172A] tabular-nums">5 qualified</span>
+                <span className="font-medium text-slate-700">AI Safety Boundary</span>
+                <span className="font-bold text-blue-700">Human-in-the-Loop</span>
               </div>
               <div className="py-2 px-1 flex items-center justify-between">
-                <span className="font-medium text-slate-700">Other Germany</span>
-                <span className="font-bold text-[#0F172A] tabular-nums">7 qualified</span>
-              </div>
-            </div>
-          </Card>
-
-          {/* Recent Activity */}
-          <Card
-            header={
-              <div className="font-bold text-xs text-[#0F172A] uppercase tracking-wider">
-                Recent Activity
-              </div>
-            }
-            padding="sm"
-          >
-            <div className="space-y-3 text-xs p-1">
-              <div className="flex items-start gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-blue-600 mt-1.5 shrink-0" />
-                <div>
-                  <span className="font-medium text-[#0F172A] block">New job qualified</span>
-                  <span className="text-[11px] text-[#64748B]">Lead Platform Engineer at Zalando (Strong Fit)</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-purple-600 mt-1.5 shrink-0" />
-                <div>
-                  <span className="font-medium text-[#0F172A] block">Cover letter generated</span>
-                  <span className="text-[11px] text-[#64748B]">Tailored for Zalando Platform Engineering</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-emerald-600 mt-1.5 shrink-0" />
-                <div>
-                  <span className="font-medium text-[#0F172A] block">Recruiter response received</span>
-                  <span className="text-[11px] text-[#64748B]">Delivery Hero invited to technical pairing</span>
-                </div>
-              </div>
-              <div className="flex items-start gap-2.5">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0" />
-                <div>
-                  <span className="font-medium text-[#0F172A] block">Application submitted</span>
-                  <span className="text-[11px] text-[#64748B]">Celonis Senior Kubernetes via referral</span>
-                </div>
+                <span className="font-medium text-slate-700">Orchestrator</span>
+                <span className="font-bold text-[#0F172A]">Idle (Ready)</span>
               </div>
             </div>
           </Card>

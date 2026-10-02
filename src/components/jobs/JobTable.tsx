@@ -109,7 +109,9 @@ export const JobTable: React.FC<JobTableProps> = ({
 
                   {/* Salary Band */}
                   <td className="py-3.5 px-4 font-medium text-[#0F172A] tabular-nums whitespace-nowrap">
-                    €{(job.salaryMin / 1000).toFixed(0)}K–€{(job.salaryMax / 1000).toFixed(0)}K
+                    {job.salaryMin && job.salaryMax && job.salaryMin > 0 && job.salaryMax > 0
+                      ? `€${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K`
+                      : 'Unknown'}
                   </td>
 
                   {/* Fit Badge */}

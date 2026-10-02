@@ -69,7 +69,9 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
         <div>
           <span className="text-[#64748B] block text-[11px]">Salary Compensation</span>
           <span className="font-semibold text-sm text-[#0F172A] tabular-nums">
-            €{(job.salaryMin / 1000).toFixed(0)}K–€{(job.salaryMax / 1000).toFixed(0)}K
+            {job.salaryMin && job.salaryMax && job.salaryMin > 0 && job.salaryMax > 0
+              ? `€${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K`
+              : 'Unknown'}
           </span>
         </div>
         <div>

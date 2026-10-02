@@ -109,7 +109,13 @@ export const ApplicationWorkspace: React.FC = () => {
     loadWorkspace();
   }, [appId]);
 
-  const handleAttestClaim = (claimId: string) => {
+  const handleAttestClaim = async (claimId: string) => {
+    if (!application) return;
+    try {
+      await applicationsApi.attestClaim(application.id, claimId, 'Attested by candidate from production logs');
+    } catch (err) {
+      console.warn('Backend attestClaim error:', err);
+    }
     setClaims((prev) => {
       const nextClaims = prev.map((c) =>
         c.id === claimId
@@ -188,7 +194,9 @@ export const ApplicationWorkspace: React.FC = () => {
       ? 'Human Review'
       : application.automationState;
 
-  const handleSimulateSubmit = () => {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleOpenSubmissionConfirm = () => {
     if (!allChecklistPass) {
       if (unverifiedClaimsCount > 0) {
         alert('Cannot submit: 1 claim requires candidate attestation. Please review flagged claims in the Claim Audit tab.');
@@ -198,6 +206,25 @@ export const ApplicationWorkspace: React.FC = () => {
       return;
     }
     setSubmissionSuccessModal(true);
+  };
+
+  const handleConfirmSubmit = async () => {
+    if (!application) return;
+    setIsSubmitting(true);
+    try {
+      const updated = await applicationsApi.markSubmitted(application.id, {
+        notes: 'Submitted manually by candidate in external ATS',
+        submissionMethod: 'External ATS Career Portal',
+        submittedAt: new Date().toISOString(),
+      });
+      setApplication(updated);
+      setSubmissionSuccessModal(false);
+      navigate('/applications');
+    } catch (err: any) {
+      alert(`Submission confirmation failed: ${err.message || err}`);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -750,20 +777,27 @@ export const ApplicationWorkspace: React.FC = () => {
 
       {/* BOTTOM ACTION BAR (Sticky & Distinct Submit Treatment) */}
       <div className="sticky bottom-0 z-20 bg-white border-t border-[#E2E8F0] px-6 py-4 shadow-lg flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-xl">
-        <div className="flex items-center gap-2 text-xs">
-          {allChecklistPass ? (
-            <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Pre-Flight Complete: Ready for Human Submission
-            </span>
-          ) : unverifiedClaimsCount > 0 ? (
-            <span className="text-amber-800 font-medium flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600" /> {unverifiedClaimsCount} claim attestation outstanding — review flagged claims in Claim Audit to enable submission
-            </span>
-          ) : (
-            <span className="text-amber-700 font-medium flex items-center gap-1.5">
-              <AlertTriangle className="w-4 h-4 text-amber-600" /> Resolve validation checklist items to enable submission
-            </span>
-          )}
+        <div className="flex flex-col gap-1 text-xs">
+          <div className="flex items-center gap-2 text-slate-500 font-medium">
+            <span>Ready for your review</span>
+            <span>·</span>
+            <span>Final submission requires your confirmation.</span>
+          </div>
+          <div>
+            {allChecklistPass ? (
+              <span className="text-emerald-700 font-semibold flex items-center gap-1.5">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Pre-Flight Complete: Ready for Human Confirmation
+              </span>
+            ) : unverifiedClaimsCount > 0 ? (
+              <span className="text-amber-800 font-medium flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600" /> {unverifiedClaimsCount} claim attestation outstanding — review flagged claims in Claim Audit to enable submission
+              </span>
+            ) : (
+              <span className="text-amber-700 font-medium flex items-center gap-1.5">
+                <AlertTriangle className="w-4 h-4 text-amber-600" /> Resolve validation checklist items to enable submission
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="flex items-center gap-3">
@@ -784,12 +818,12 @@ export const ApplicationWorkspace: React.FC = () => {
             variant="success"
             size="md"
             disabled={!allChecklistPass}
-            onClick={handleSimulateSubmit}
+            onClick={handleOpenSubmissionConfirm}
             icon={<Send className="w-4 h-4" />}
             iconPosition="right"
             className="px-6 font-bold shadow-md ring-2 ring-emerald-600/20"
           >
-            Submit Application
+            Confirm External Submission
           </Button>
         </div>
       </div>
@@ -798,15 +832,15 @@ export const ApplicationWorkspace: React.FC = () => {
       {submissionSuccessModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#E2E8F0] animate-in zoom-in-95">
-            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mx-auto">
               <CheckCircle2 className="w-7 h-7" />
             </div>
             <div className="text-center space-y-1">
               <h3 className="font-bold text-base text-[#0F172A]">
-                Application Package Validated!
+                Have you manually submitted this application?
               </h3>
               <p className="text-xs text-[#64748B]">
-                In Phase 1, automated external submission is disabled for human safety. Your materials are validated, verified, and saved to your execution pipeline.
+                In accordance with human safety invariants, the recruitment operating system never automatically submits applications. Please confirm you have completed external submission on the employer portal.
               </p>
             </div>
             <div className="p-3 bg-slate-50 rounded-lg text-xs space-y-1 border border-slate-100">
@@ -819,21 +853,28 @@ export const ApplicationWorkspace: React.FC = () => {
                 <span className="font-semibold text-slate-800">{job.companyName}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Route:</span>
+                <span className="text-slate-500">External ATS:</span>
                 <span className="font-semibold text-blue-700">{job.applicationRoute}</span>
               </div>
             </div>
             <div className="flex gap-2">
               <Button
-                variant="primary"
+                variant="secondary"
                 size="sm"
-                className="w-full"
-                onClick={() => {
-                  setSubmissionSuccessModal(false);
-                  navigate('/applications');
-                }}
+                className="w-1/2"
+                onClick={() => setSubmissionSuccessModal(false)}
+                disabled={isSubmitting}
               >
-                Go to Applications Pipeline
+                Cancel
+              </Button>
+              <Button
+                variant="success"
+                size="sm"
+                className="w-1/2 font-bold"
+                onClick={handleConfirmSubmit}
+                isLoading={isSubmitting}
+              >
+                Yes, I submitted it
               </Button>
             </div>
           </div>

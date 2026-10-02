@@ -81,7 +81,11 @@ export const JobDetail: React.FC = () => {
           { label: job.title },
         ]}
         title={job.title}
-        subtitle={`${job.companyName} · ${job.location} · €${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K gross/yr · Posted ${job.postedDate}`}
+        subtitle={`${job.companyName} · ${job.location} · ${
+          job.salaryMin && job.salaryMax && job.salaryMin > 0 && job.salaryMax > 0
+            ? `€${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K gross/yr`
+            : 'Salary: Unknown'
+        } · Posted ${job.postedDate}`}
         actions={
           <div className="flex items-center gap-2">
             <Button

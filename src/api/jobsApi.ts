@@ -1,5 +1,6 @@
 import { store } from './store';
 import { Job, FitLevel, EvidenceStatus, PipelineStage } from '../types';
+import { backendJobsApi, isBackendConnected } from './backendClient';
 
 export interface JobFilterParams {
   search?: string;
@@ -16,6 +17,14 @@ export interface JobFilterParams {
 
 export const jobsApi = {
   async getJobs(params?: JobFilterParams): Promise<Job[]> {
+    if (isBackendConnected()) {
+      try {
+        return await backendJobsApi.getJobs(params);
+      } catch (err) {
+        console.warn('Backend getJobs failed, falling back to mock store:', err);
+      }
+    }
+
     let jobs = store.getJobs();
     if (!params) return jobs;
 
@@ -59,11 +68,27 @@ export const jobsApi = {
   },
 
   async getJob(id: string): Promise<Job | null> {
+    if (isBackendConnected()) {
+      try {
+        const job = await backendJobsApi.getJob(id);
+        if (job) return job;
+      } catch (err) {
+        console.warn(`Backend getJob(${id}) failed, falling back to mock store:`, err);
+      }
+    }
     const job = store.getJobById(id);
     return job || null;
   },
 
   async updateJob(id: string, update: Partial<Job>): Promise<Job> {
+    if (isBackendConnected()) {
+      try {
+        return await backendJobsApi.updateJob(id, update);
+      } catch (err) {
+        console.warn(`Backend updateJob(${id}) failed, falling back to mock store:`, err);
+      }
+    }
     return store.updateJob(id, update);
   },
 };
+

@@ -97,6 +97,30 @@ class MockStore {
     contact.lastContactDate = newMsg.date;
     return { ...contact };
   }
+  updateContact(id: string, update: Partial<Contact>): Contact {
+    const idx = this.contacts.findIndex((c) => c.id === id);
+    if (idx !== -1) {
+      this.contacts[idx] = { ...this.contacts[idx], ...update };
+      return this.contacts[idx];
+    }
+    throw new Error(`Contact ${id} not found`);
+  }
+  createContact(newContact: Partial<Contact>): Contact {
+    const contact = {
+      id: newContact.id || `cnt-${Date.now()}`,
+      name: newContact.name || 'Unknown Contact',
+      companyId: newContact.companyId || '',
+      companyName: newContact.companyName || '',
+      role: newContact.role || 'Recruiter',
+      relationship: newContact.relationship || 'Recruiter',
+      isReferralVerified: (newContact as any).isReferralVerified || false,
+      verificationStatus: (newContact as any).verificationStatus || 'potential',
+      messages: newContact.messages || [],
+      ...newContact,
+    } as Contact;
+    this.contacts = [contact, ...this.contacts];
+    return contact;
+  }
 
   // Applications
   getApplications(): Application[] {
@@ -132,6 +156,19 @@ class MockStore {
       return this.documents[idx];
     }
     throw new Error(`Document ${id} not found`);
+  }
+  createDocument(newDoc: Partial<Document>): Document {
+    const doc = {
+      id: newDoc.id || `doc-${Date.now()}`,
+      title: newDoc.title || 'Untitled Document',
+      type: newDoc.type || 'CV',
+      createdAt: new Date().toISOString().split('T')[0],
+      updatedAt: new Date().toISOString().split('T')[0],
+      version: newDoc.version || 'v1.0',
+      ...newDoc,
+    } as Document;
+    this.documents = [doc, ...this.documents];
+    return doc;
   }
 
   // Interviews
