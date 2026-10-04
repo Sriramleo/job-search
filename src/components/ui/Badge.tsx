@@ -106,20 +106,32 @@ export const AutomationBadge: React.FC<{ state: AutomationState }> = ({ state })
     'AI Prepared': 'purple',
     'Human Review': 'amber',
     Ready: 'green',
+    'Ready for Review': 'purple',
+    'Approved for Fill': 'blue',
+    Filling: 'blue',
+    Filled: 'blue',
+    'Awaiting Human Submission': 'amber',
     'Automation Running': 'blue',
+    'Submission Approved': 'purple',
+    Submitting: 'blue',
+    'Submission Verified': 'green',
+    'Submission Unverified': 'amber',
+    'Submission Requires Human Action': 'amber',
+    'Submission Failed': 'red',
     Submitted: 'green',
     'Needs Attention': 'red',
   };
 
   return (
     <Badge variant={map[state] || 'gray'}>
-      {state === 'Automation Running' && (
+      {(state === 'Automation Running' || state === 'Submitting' || state === 'Filling') && (
         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping mr-1.5" />
       )}
       {state}
     </Badge>
   );
 };
+
 
 export const ClaimBadge: React.FC<{
   status: 'Verified' | 'Supported by Profile' | 'Needs Attestation / Flagged';

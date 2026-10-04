@@ -195,20 +195,69 @@ export const ApplicationWorkspace: React.FC = () => {
       : application.automationState;
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [automatedModalOpen, setAutomatedModalOpen] = useState(false);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [ackChecked, setAckChecked] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<import('../types').SubmissionResult | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
-  const handleOpenSubmissionConfirm = () => {
+  const handleOpenAutomatedSubmit = () => {
     if (!allChecklistPass) {
       if (unverifiedClaimsCount > 0) {
-        alert('Cannot submit: 1 claim requires candidate attestation. Please review flagged claims in the Claim Audit tab.');
+        alert('Cannot submit: 1 or more claims require candidate attestation. Please review flagged claims in the Claim Audit tab.');
       } else {
         alert('Please satisfy all pre-flight validation checklist items before submitting.');
       }
       return;
     }
-    setSubmissionSuccessModal(true);
+    setSubmissionError(null);
+    setSubmissionResult(null);
+    setAckChecked(false);
+    setAutomatedModalOpen(true);
   };
 
-  const handleConfirmSubmit = async () => {
+  const handleOpenManualSubmit = () => {
+    if (!allChecklistPass) {
+      if (unverifiedClaimsCount > 0) {
+        alert('Cannot submit: 1 or more claims require candidate attestation.');
+      } else {
+        alert('Please satisfy all pre-flight validation checklist items before submitting.');
+      }
+      return;
+    }
+    setManualModalOpen(true);
+  };
+
+  const handleExecuteAutomatedSubmit = async () => {
+    if (!application || !job) return;
+    if (!ackChecked) {
+      alert('Please check the acknowledgement confirming you have reviewed the application materials.');
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmissionError(null);
+    try {
+      const res = await applicationsApi.approveAndSubmit(application.id, {
+        jobId: job.id,
+        companyId: job.companyId || application.companyId,
+        cvVariantId: application.cvVariantId,
+        approvedBy: 'candidate',
+        confirmationAcknowledged: true,
+        notes: 'Explicit human approval via Application Workspace',
+      });
+      setSubmissionResult(res);
+      if (res.verified) {
+        const updated = await applicationsApi.getApplication(application.id);
+        if (updated) setApplication(updated);
+      }
+    } catch (err: any) {
+      setSubmissionError(err.message || String(err));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleConfirmManualSubmit = async () => {
     if (!application) return;
     setIsSubmitting(true);
     try {
@@ -218,14 +267,15 @@ export const ApplicationWorkspace: React.FC = () => {
         submittedAt: new Date().toISOString(),
       });
       setApplication(updated);
-      setSubmissionSuccessModal(false);
+      setManualModalOpen(false);
       navigate('/applications');
     } catch (err: any) {
-      alert(`Submission confirmation failed: ${err.message || err}`);
+      alert(`Manual submission recording failed: ${err.message || err}`);
     } finally {
       setIsSubmitting(false);
     }
   };
+
 
   return (
     <div className="space-y-6">
@@ -808,28 +858,189 @@ export const ApplicationWorkspace: React.FC = () => {
           <Button
             variant="outline"
             size="md"
-            onClick={() => setActiveTab('coverLetter')}
+            onClick={handleOpenManualSubmit}
+            disabled={!allChecklistPass}
           >
-            Review Materials
+            Mark Manual Submission
           </Button>
 
-          {/* Submit button with separate visual treatment */}
+          {/* Phase 18 Explicit Human Approval & Automated Playwright Submission */}
           <Button
             variant="success"
             size="md"
             disabled={!allChecklistPass}
-            onClick={handleOpenSubmissionConfirm}
+            onClick={handleOpenAutomatedSubmit}
             icon={<Send className="w-4 h-4" />}
             iconPosition="right"
             className="px-6 font-bold shadow-md ring-2 ring-emerald-600/20"
           >
-            Confirm External Submission
+            Approve & Submit (Playwright ATS)
           </Button>
         </div>
       </div>
 
-      {/* Confirmation Modal */}
-      {submissionSuccessModal && (
+      {/* Phase 18 Automated Playwright Submission Approval Modal */}
+      {automatedModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs">
+          <div className="bg-white rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-[#E2E8F0] animate-in zoom-in-95 max-h-[90vh] overflow-y-auto">
+            <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center mx-auto">
+              <ShieldCheck className="w-7 h-7" />
+            </div>
+
+            <div className="text-center space-y-1">
+              <h3 className="font-bold text-lg text-[#0F172A]">
+                Human Review & Submission Authorization
+              </h3>
+              <p className="text-xs text-[#64748B]">
+                In accordance with Phase 18 Human-in-the-Loop boundary, the system will execute submission only after your explicit review and one-time authorization.
+              </p>
+            </div>
+
+            {/* Application Summary Box */}
+            <div className="p-4 bg-slate-50 rounded-lg text-xs space-y-2 border border-slate-200">
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Job:</span>
+                <span className="font-semibold text-slate-800">{job.title}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Company:</span>
+                <span className="font-semibold text-slate-800">{job.companyName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Location:</span>
+                <span className="font-semibold text-slate-800">{job.location}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">CV Variant:</span>
+                <span className="font-semibold text-slate-800">{application.cvVariantName}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Candidate:</span>
+                <span className="font-semibold text-slate-800">
+                  {candidate?.name || 'Sriram Sugavanam'} (Blue Card Eligible, Notice: 30d)
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500 font-medium">Application Route:</span>
+                <span className="font-semibold text-blue-700">{job.applicationRoute || 'Direct ATS'}</span>
+              </div>
+            </div>
+
+            {/* Verification / Result Banner */}
+            {submissionResult && (
+              <div
+                className={`p-3 rounded-lg text-xs space-y-1 border ${
+                  submissionResult.verified
+                    ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
+                    : submissionResult.status === 'submission_requires_human_action'
+                    ? 'bg-amber-50 border-amber-200 text-amber-800'
+                    : 'bg-orange-50 border-orange-200 text-orange-800'
+                }`}
+              >
+                <div className="font-bold flex items-center gap-1.5">
+                  {submissionResult.verified ? (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Submission Positively Verified & Applied!
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle className="w-4 h-4 text-amber-600" />{' '}
+                      {submissionResult.status === 'submission_requires_human_action'
+                        ? 'Human Action Required'
+                        : 'Submission Unverified'}
+                    </>
+                  )}
+                </div>
+                {submissionResult.confirmationId && (
+                  <p>Confirmation Reference ID: <strong>{submissionResult.confirmationId}</strong></p>
+                )}
+                {submissionResult.confirmationMessage && (
+                  <p>{submissionResult.confirmationMessage}</p>
+                )}
+                {submissionResult.errorMessage && (
+                  <p className="text-red-700">{submissionResult.errorMessage}</p>
+                )}
+                {submissionResult.verified && (
+                  <p className="text-emerald-700 font-medium pt-1">
+                    ✓ Status transitioned to APPLIED. Automated 7-day follow-up task scheduled.
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Error Banner */}
+            {submissionError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-xs text-red-800">
+                <strong>Submission Error:</strong> {submissionError}
+              </div>
+            )}
+
+            {/* Mandatory Human Acknowledgement Checkbox */}
+            {!submissionResult && (
+              <label className="flex items-start gap-2.5 p-3 rounded-lg border border-slate-200 bg-emerald-50/40 cursor-pointer text-xs text-slate-700 select-none">
+                <input
+                  type="checkbox"
+                  checked={ackChecked}
+                  onChange={(e) => setAckChecked(e.target.checked)}
+                  className="mt-0.5 rounded text-emerald-600 focus:ring-emerald-500"
+                />
+                <span>
+                  I have reviewed all materials, answers, and documents, and I explicitly authorize automated ATS submission via Playwright.
+                </span>
+              </label>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex gap-2 pt-2">
+              {submissionResult ? (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-1/2"
+                    onClick={() => setAutomatedModalOpen(false)}
+                  >
+                    Close
+                  </Button>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    className="w-1/2 font-bold"
+                    onClick={() => navigate('/applications')}
+                  >
+                    View Applications
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    className="w-1/2"
+                    onClick={() => setAutomatedModalOpen(false)}
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    variant="success"
+                    size="sm"
+                    className="w-1/2 font-bold"
+                    onClick={handleExecuteAutomatedSubmit}
+                    isLoading={isSubmitting}
+                    disabled={!ackChecked || isSubmitting}
+                  >
+                    Authorize & Submit
+                  </Button>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manual Submission Fallback Modal */}
+      {manualModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-xs">
           <div className="bg-white rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-[#E2E8F0] animate-in zoom-in-95">
             <div className="w-12 h-12 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center mx-auto">
@@ -837,10 +1048,10 @@ export const ApplicationWorkspace: React.FC = () => {
             </div>
             <div className="text-center space-y-1">
               <h3 className="font-bold text-base text-[#0F172A]">
-                Have you manually submitted this application?
+                Confirm Manual Submission
               </h3>
               <p className="text-xs text-[#64748B]">
-                In accordance with human safety invariants, the recruitment operating system never automatically submits applications. Please confirm you have completed external submission on the employer portal.
+                Confirm that you have manually completed and submitted this application on the external employer portal.
               </p>
             </div>
             <div className="p-3 bg-slate-50 rounded-lg text-xs space-y-1 border border-slate-100">
@@ -852,17 +1063,13 @@ export const ApplicationWorkspace: React.FC = () => {
                 <span className="text-slate-500">Company:</span>
                 <span className="font-semibold text-slate-800">{job.companyName}</span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">External ATS:</span>
-                <span className="font-semibold text-blue-700">{job.applicationRoute}</span>
-              </div>
             </div>
             <div className="flex gap-2">
               <Button
                 variant="secondary"
                 size="sm"
                 className="w-1/2"
-                onClick={() => setSubmissionSuccessModal(false)}
+                onClick={() => setManualModalOpen(false)}
                 disabled={isSubmitting}
               >
                 Cancel
@@ -871,7 +1078,7 @@ export const ApplicationWorkspace: React.FC = () => {
                 variant="success"
                 size="sm"
                 className="w-1/2 font-bold"
-                onClick={handleConfirmSubmit}
+                onClick={handleConfirmManualSubmit}
                 isLoading={isSubmitting}
               >
                 Yes, I submitted it
@@ -880,6 +1087,7 @@ export const ApplicationWorkspace: React.FC = () => {
           </div>
         </div>
       )}
+
     </div>
   );
 };

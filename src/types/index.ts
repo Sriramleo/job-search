@@ -40,9 +40,21 @@ export type AutomationState =
   | 'AI Prepared'
   | 'Human Review'
   | 'Ready'
+  | 'Ready for Review'
+  | 'Approved for Fill'
+  | 'Filling'
+  | 'Filled'
+  | 'Awaiting Human Submission'
   | 'Automation Running'
+  | 'Submission Approved'
+  | 'Submitting'
+  | 'Submission Verified'
+  | 'Submission Unverified'
+  | 'Submission Requires Human Action'
+  | 'Submission Failed'
   | 'Submitted'
   | 'Needs Attention';
+
 
 export interface Candidate {
   id: string;
@@ -275,7 +287,38 @@ export interface Application {
     noFabricatedInfo: boolean;
     noMissingRequiredFields: boolean;
   };
+  submittedAt?: string;
+  submissionConfirmationId?: string;
+  submissionNotes?: string;
+  submissionMethod?: string;
+  automationSessionId?: string;
+  applicationVersion?: string;
 }
+
+export interface SubmissionResult {
+  applicationId: string;
+  status: 'applied' | 'submission_unverified' | 'submission_requires_human_action' | 'submission_failed';
+  verified: boolean;
+  submittedAt?: string;
+  confirmationId?: string;
+  confirmationMessage?: string;
+  errorMessage?: string;
+  auditEvents?: string[];
+}
+
+export interface ApproveAndSubmitRequest {
+  applicationId?: string;
+  sessionId?: string;
+  jobId: string;
+  companyId: string;
+  cvVariantId: string;
+  coverLetterId?: string;
+  applicationVersion?: string;
+  approvedBy?: string;
+  confirmationAcknowledged: boolean;
+  notes?: string;
+}
+
 
 export interface Document {
   id: string;

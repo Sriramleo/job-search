@@ -115,4 +115,30 @@ export const applicationsApi = {
       { reason }
     );
   },
+
+  /**
+   * PHASE 18 EXPLICIT HUMAN APPROVAL & ATS SUBMISSION:
+   * Triggers verified Playwright submission on external ATS after human approval.
+   */
+  async approveAndSubmit(
+    applicationId: string,
+    request: import('../types').ApproveAndSubmitRequest
+  ): Promise<import('../types').SubmissionResult> {
+    return await apiClient.post<import('../types').SubmissionResult>(
+      `/applications/${applicationId}/approve-and-submit`,
+      request
+    );
+  },
+
+  async markReviewed(
+    applicationId: string,
+    reviewer = 'human',
+    notes?: string
+  ): Promise<Application> {
+    return await apiClient.post<Application>(
+      `/applications/${applicationId}/mark-reviewed`,
+      null,
+      { params: { reviewer, notes } }
+    );
+  },
 };
