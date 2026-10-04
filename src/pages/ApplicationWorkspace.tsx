@@ -304,12 +304,16 @@ export const ApplicationWorkspace: React.FC = () => {
         notes: 'Explicit human approval via Application Workspace',
       });
       setSubmissionResult(res);
-      if (res.verified) {
+      try {
         const updated = await applicationsApi.getApplication(application.id);
         if (updated) setApplication(updated);
-      }
+      } catch {}
     } catch (err: any) {
       setSubmissionError(err.message || String(err));
+      try {
+        const updated = await applicationsApi.getApplication(application.id);
+        if (updated) setApplication(updated);
+      } catch {}
     } finally {
       setIsSubmitting(false);
     }
@@ -430,6 +434,72 @@ export const ApplicationWorkspace: React.FC = () => {
               </div>
             </div>
           </Card>
+
+          {/* OBSERVABILITY & AUTOMATION RUN CARD */}
+          {application && (application.lastAutomationRunId || application.lastSubmissionStatus) && (
+            <Card
+              header={
+                <div className="font-bold text-xs text-[#0F172A] uppercase tracking-wider flex items-center justify-between">
+                  <span>Submission Execution</span>
+                  {application.retryPolicy && (
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${
+                      application.retryPolicy === 'SAFE_TO_RETRY'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : application.retryPolicy === 'OUTCOME_UNKNOWN'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {application.retryPolicy}
+                    </span>
+                  )}
+                </div>
+              }
+              padding="sm"
+            >
+              <div className="space-y-2 p-1 text-xs">
+                {application.lastAutomationRunId && (
+                  <div>
+                    <span className="text-[#64748B] block text-[11px]">Execution Run ID</span>
+                    <code className="text-[11px] font-mono font-semibold text-slate-800 bg-slate-100 px-1 py-0.5 rounded">
+                      {application.lastAutomationRunId}
+                    </code>
+                  </div>
+                )}
+                {application.lastSubmissionStatus && (
+                  <div>
+                    <span className="text-[#64748B] block text-[11px]">Last Status</span>
+                    <span className="font-semibold text-slate-800 uppercase text-[11px]">
+                      {application.lastSubmissionStatus}
+                    </span>
+                  </div>
+                )}
+                {application.lastSubmissionErrorCode && (
+                  <div>
+                    <span className="text-[#64748B] block text-[11px]">Error Code</span>
+                    <code className="text-[11px] font-mono text-red-700 bg-red-50 px-1 py-0.5 rounded">
+                      {application.lastSubmissionErrorCode}
+                    </code>
+                  </div>
+                )}
+                {application.lastSubmissionError && (
+                  <div>
+                    <span className="text-[#64748B] block text-[11px]">Failure Reason</span>
+                    <p className="text-[11px] text-red-700 bg-red-50/50 p-1.5 rounded border border-red-100 leading-normal">
+                      {application.lastSubmissionError}
+                    </p>
+                  </div>
+                )}
+                {application.lastSubmissionAttemptAt && (
+                  <div>
+                    <span className="text-[#64748B] block text-[10px]">Attempted At</span>
+                    <span className="text-slate-600 text-[10px]">
+                      {new Date(application.lastSubmissionAttemptAt).toLocaleString()}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </Card>
+          )}
 
           <Card
             header={
@@ -1036,6 +1106,26 @@ export const ApplicationWorkspace: React.FC = () => {
                 </div>
                 {submissionResult.confirmationId && (
                   <p>Confirmation Reference ID: <strong>{submissionResult.confirmationId}</strong></p>
+                )}
+                {submissionResult.automationRunId && (
+                  <p className="text-slate-600">Run ID: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono text-[11px]">{submissionResult.automationRunId}</code></p>
+                )}
+                {submissionResult.errorCode && (
+                  <p className="text-red-700 font-semibold">Error Code: <code className="bg-red-100 text-red-800 px-1 py-0.5 rounded font-mono text-[11px]">{submissionResult.errorCode}</code></p>
+                )}
+                {submissionResult.retryPolicy && (
+                  <p className="text-slate-700">
+                    Retry Policy:{' '}
+                    <span className={`font-semibold px-1.5 py-0.5 rounded text-[10px] ${
+                      submissionResult.retryPolicy === 'SAFE_TO_RETRY'
+                        ? 'bg-emerald-100 text-emerald-800'
+                        : submissionResult.retryPolicy === 'OUTCOME_UNKNOWN'
+                        ? 'bg-amber-100 text-amber-800'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {submissionResult.retryPolicy}
+                    </span>
+                  </p>
                 )}
                 {submissionResult.confirmationMessage && (
                   <p>{submissionResult.confirmationMessage}</p>

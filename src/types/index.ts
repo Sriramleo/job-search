@@ -293,6 +293,12 @@ export interface Application {
   submissionMethod?: string;
   automationSessionId?: string;
   applicationVersion?: string;
+  lastAutomationRunId?: string;
+  lastSubmissionAttemptAt?: string;
+  lastSubmissionStatus?: string;
+  lastSubmissionError?: string;
+  lastSubmissionErrorCode?: string;
+  retryPolicy?: 'SAFE_TO_RETRY' | 'DO_NOT_AUTO_RETRY' | 'OUTCOME_UNKNOWN' | string;
 }
 
 export interface SubmissionResult {
@@ -303,6 +309,10 @@ export interface SubmissionResult {
   confirmationId?: string;
   confirmationMessage?: string;
   errorMessage?: string;
+  errorCode?: string;
+  automationRunId?: string;
+  retryPolicy?: 'SAFE_TO_RETRY' | 'DO_NOT_AUTO_RETRY' | 'OUTCOME_UNKNOWN' | string;
+  humanActionRequired?: boolean;
   auditEvents?: string[];
 }
 
