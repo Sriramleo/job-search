@@ -55,6 +55,12 @@ export const ApplicationWorkspace: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [saveToast, setSaveToast] = useState(false);
   const [submissionSuccessModal, setSubmissionSuccessModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [automatedModalOpen, setAutomatedModalOpen] = useState(false);
+  const [manualModalOpen, setManualModalOpen] = useState(false);
+  const [ackChecked, setAckChecked] = useState(false);
+  const [submissionResult, setSubmissionResult] = useState<import('../types').SubmissionResult | null>(null);
+  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   // Form states for in-workspace editing
   const [coverLetterText, setCoverLetterText] = useState('');
@@ -249,13 +255,6 @@ export const ApplicationWorkspace: React.FC = () => {
     unverifiedClaimsCount > 0 && (application.automationState === 'Ready' || application.automationState === 'Submitted')
       ? 'Human Review'
       : application.automationState;
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [automatedModalOpen, setAutomatedModalOpen] = useState(false);
-  const [manualModalOpen, setManualModalOpen] = useState(false);
-  const [ackChecked, setAckChecked] = useState(false);
-  const [submissionResult, setSubmissionResult] = useState<import('../types').SubmissionResult | null>(null);
-  const [submissionError, setSubmissionError] = useState<string | null>(null);
 
   const handleOpenAutomatedSubmit = () => {
     if (!allChecklistPass) {
