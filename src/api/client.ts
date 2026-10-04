@@ -6,19 +6,17 @@
 
 import { ApiError } from './errors';
 
-// Production fallback or development default
+// Production default to Oracle backend
+const DEFAULT_API_URL = 'https://api-jobsearch.sriramdevops.site';
 const ENV_URL = import.meta.env.VITE_API_BASE_URL;
 export const API_BASE_URL = (
   ENV_URL !== undefined && ENV_URL !== ''
     ? ENV_URL
-    : import.meta.env.PROD
-    ? '' // In production, relative to domain or proxy
-    : 'http://localhost:8000'
+    : DEFAULT_API_URL
 ).replace(/\/+$/, '');
 
 export const isBackendConfigured = (): boolean => {
-  // If explicitly configured or in dev with default
-  return Boolean(API_BASE_URL || !import.meta.env.PROD);
+  return true;
 };
 
 export interface RequestOptions extends Omit<RequestInit, 'body'> {

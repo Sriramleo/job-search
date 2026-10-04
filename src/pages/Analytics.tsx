@@ -146,17 +146,21 @@ export const Analytics: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(analyticsData?.sourceAnalysis || [
-                { source: 'LinkedIn Direct', count: 28, qualifiedRate: '64%' },
-                { source: 'Referral Pipeline', count: 12, qualifiedRate: '91%' },
-                { source: 'Company Career Portals', count: 8, qualifiedRate: '50%' },
-              ]).map((s: any) => (
-                <tr key={s.source}>
-                  <td className="py-2.5 px-3 font-medium text-slate-800">{s.source}</td>
-                  <td className="py-2.5 px-3 text-center tabular-nums">{s.count}</td>
-                  <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{s.qualifiedRate}</td>
+              {(!analyticsData?.sourceAnalysis || analyticsData.sourceAnalysis.length === 0) ? (
+                <tr>
+                  <td colSpan={3} className="py-4 text-center text-slate-500">
+                    No data available
+                  </td>
                 </tr>
-              ))}
+              ) : (
+                analyticsData.sourceAnalysis.map((s: any) => (
+                  <tr key={s.source}>
+                    <td className="py-2.5 px-3 font-medium text-slate-800">{s.source}</td>
+                    <td className="py-2.5 px-3 text-center tabular-nums">{s.count}</td>
+                    <td className="py-2.5 px-3 text-right font-bold text-emerald-700">{s.qualifiedRate}</td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </Card>
@@ -171,24 +175,25 @@ export const Analytics: React.FC = () => {
           padding="sm"
         >
           <div className="space-y-3 p-3 text-xs">
-            {(analyticsData?.salaryDistribution || [
-              { band: '€80,000 – €89,000', count: 18 },
-              { band: '€90,000 – €99,000', count: 16 },
-              { band: '€100,000+', count: 8 },
-            ]).map((band: any) => {
-              const pct = (band.count / 42) * 100;
-              return (
-                <div key={band.band} className="space-y-1">
-                  <div className="flex justify-between font-medium">
-                    <span className="text-slate-800">{band.band}</span>
-                    <span className="text-slate-500 tabular-nums">{band.count} roles ({pct.toFixed(0)}%)</span>
+            {(!analyticsData?.salaryDistribution || analyticsData.salaryDistribution.length === 0) ? (
+              <div className="py-4 text-center text-slate-500">No data available</div>
+            ) : (
+              analyticsData.salaryDistribution.map((band: any) => {
+                const total = analyticsData?.totalJobs || 21;
+                const pct = total > 0 ? (band.count / total) * 100 : 0;
+                return (
+                  <div key={band.band} className="space-y-1">
+                    <div className="flex justify-between font-medium">
+                      <span className="text-slate-800">{band.band}</span>
+                      <span className="text-slate-500 tabular-nums">{band.count} roles ({pct.toFixed(0)}%)</span>
+                    </div>
+                    <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
+                      <div style={{ width: `${pct}%` }} className="h-full bg-blue-600 rounded-full" />
+                    </div>
                   </div>
-                  <div className="h-1.5 w-full bg-slate-100 rounded-full overflow-hidden">
-                    <div style={{ width: `${pct}%` }} className="h-full bg-blue-600 rounded-full" />
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })
+            )}
           </div>
         </Card>
       </div>

@@ -38,8 +38,8 @@ export const ApplicationWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
-  // Selected application ID (defaults to zalando application)
-  const appId = id || 'app-zalando-01';
+  // Selected application ID
+  const appId = id;
 
   const [application, setApplication] = useState<Application | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -75,11 +75,11 @@ export const ApplicationWorkspace: React.FC = () => {
     const loadWorkspace = async () => {
       setIsLoading(true);
       try {
-        let app = await applicationsApi.getApplication(appId);
+        let app = appId ? await applicationsApi.getApplication(appId) : null;
         if (!app) {
           // Fallback to first available application
           const allApps = await applicationsApi.getApplications();
-          app = allApps[0];
+          app = allApps[0] || null;
         }
         if (app) {
           setApplication(app);

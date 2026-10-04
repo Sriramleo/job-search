@@ -1,5 +1,4 @@
 import { apiClient } from './client';
-import { store } from './store';
 import { Application } from '../types';
 
 export interface ApplicationFilterParams {
@@ -21,17 +20,7 @@ export interface MarkSubmittedParams {
 
 export const applicationsApi = {
   async getApplications(params?: ApplicationFilterParams): Promise<Application[]> {
-    try {
-      return await apiClient.get<Application[]>('/applications', { params: params as any });
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      console.warn('Applications API call failed, falling back to mock store:', err);
-      let apps = store.getApplications();
-      if (params?.stage && params.stage !== 'all') {
-        apps = apps.filter((a) => a.stage === params.stage);
-      }
-      return apps;
-    }
+    return await apiClient.get<Application[]>('/applications', { params: params as any });
   },
 
   async getApplication(id: string): Promise<Application | null> {
@@ -39,65 +28,42 @@ export const applicationsApi = {
       return await apiClient.get<Application>(`/applications/${id}`);
     } catch (err: any) {
       if (err.status === 404) return null;
-      if (import.meta.env.PROD) throw err;
-      return store.getApplicationById(id) || null;
+      throw err;
     }
   },
 
   async updateApplication(id: string, update: Partial<Application>): Promise<Application> {
-    try {
-      return await apiClient.patch<Application>(`/applications/${id}`, update);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.updateApplication(id, update);
-    }
+    return await apiClient.patch<Application>(`/applications/${id}`, update);
   },
 
   async attestClaim(applicationId: string, claimId: string, notes?: string): Promise<Application> {
-    try {
-      return await apiClient.post<Application>(`/applications/${applicationId}/claims/${claimId}/attest`, {
-        candidateId: 'cand-sriram',
-        attestationNotes: notes || 'Attested by candidate',
-      });
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      const app = store.getApplicationById(applicationId);
-      if (!app) throw new Error(`Application ${applicationId} not found`);
-      const updatedClaims = (app.claims || []).map((c) =>
-        c.id === claimId
-          ? { ...c, status: 'Verified' as const, sourceEvidenceSummary: notes, flagReason: undefined }
-          : c
-      );
-      return store.updateApplication(applicationId, { claims: updatedClaims });
-    }
+    return await apiClient.post<Application>(`/applications/${applicationId}/claims/${claimId}/attest`, {
+      candidateId: 'cand-sriram',
+      attestationNotes: notes || 'Attested by candidate',
+    });
   },
 
   async getWorkspace(applicationId: string) {
     try {
       return await apiClient.get(`/applications/${applicationId}/workspace`);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return null;
+    } catch (err: any) {
+      if (err.status === 404) return null;
+      throw err;
     }
   },
 
   async prepareApplication(applicationId: string, forceRefresh = false) {
-    try {
-      return await apiClient.post(`/applications/${applicationId}/prepare`, null, {
-        params: { forceRefresh },
-      });
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return null;
-    }
+    return await apiClient.post(`/applications/${applicationId}/prepare`, null, {
+      params: { forceRefresh },
+    });
   },
 
   async getPreparation(applicationId: string) {
     try {
       return await apiClient.get(`/applications/${applicationId}/preparation`);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return null;
+    } catch (err: any) {
+      if (err.status === 404) return null;
+      throw err;
     }
   },
 
@@ -106,16 +72,7 @@ export const applicationsApi = {
    * Explicit confirmation that candidate has manually submitted the application in external ATS.
    */
   async markSubmitted(applicationId: string, request?: MarkSubmittedParams): Promise<Application> {
-    try {
-      return await apiClient.post<Application>(`/applications/${applicationId}/mark-submitted`, request || {});
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.updateApplication(applicationId, {
-        stage: 'Applied',
-        appliedDate: new Date().toISOString().split('T')[0],
-        automationState: 'Submitted',
-      });
-    }
+    return await apiClient.post<Application>(`/applications/${applicationId}/mark-submitted`, request || {});
   },
 
   async startAutomation(applicationId: string, options?: any) {

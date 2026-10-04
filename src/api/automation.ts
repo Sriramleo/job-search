@@ -1,32 +1,23 @@
 import { apiClient } from './client';
-import { store } from './store';
 import { AutomationRun } from '../types';
 
 export const automationApi = {
   async getAutomationRuns(): Promise<AutomationRun[]> {
     try {
       return await apiClient.get<AutomationRun[]>('/system/automation-runs');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      console.warn('Automation runs API call failed, falling back to mock store:', err);
-      return store.getAutomationRuns();
+    } catch {
+      return [];
     }
   },
 
   async toggleAutomation(id: string): Promise<AutomationRun> {
-    try {
-      return await apiClient.post<AutomationRun>(`/system/automation-runs/${id}/toggle`);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.toggleAutomationRun(id);
-    }
+    return await apiClient.post<AutomationRun>(`/system/automation-runs/${id}/toggle`);
   },
 
   async getOrchestrationStatus() {
     try {
       return await apiClient.get('/orchestration/status');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
+    } catch {
       return null;
     }
   },
@@ -34,8 +25,7 @@ export const automationApi = {
   async getOrchestrationRuns(params?: { workflow?: string; status?: string; limit?: number }) {
     try {
       return await apiClient.get('/orchestration/runs', { params });
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
+    } catch {
       return [];
     }
   },
@@ -44,3 +34,4 @@ export const automationApi = {
     return await apiClient.post(`/orchestration/run/${workflow}`, options || {});
   },
 };
+

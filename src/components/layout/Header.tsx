@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Search,
@@ -8,7 +8,7 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
-import { mockCandidate } from '../../mocks/candidate';
+import { candidateApi } from '../../api';
 
 interface HeaderProps {
   onToggleMobileMenu: () => void;
@@ -20,6 +20,13 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [showTaskDropdown, setShowTaskDropdown] = useState(false);
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
+  const [candidate, setCandidate] = useState({ name: 'Sriram Sugavanam', currentRole: 'Senior DevOps Engineer' });
+
+  useEffect(() => {
+    candidateApi.getCandidate().then((c) => {
+      if (c?.name) setCandidate({ name: c.name, currentRole: c.currentRole || 'Senior DevOps Engineer' });
+    }).catch(() => {});
+  }, []);
 
   // Dynamic Page Title
   const getPageTitle = (pathname: string): { title: string; subtitle?: string } => {
@@ -140,17 +147,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
             <div className="absolute right-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-[#E2E8F0] p-3 z-50 text-xs animate-in fade-in zoom-in-95 duration-100">
               <div className="flex items-center justify-between pb-2 border-b border-slate-100 font-semibold text-[#0F172A]">
                 <span>Recent Updates</span>
-                <span className="text-[10px] text-slate-400">Phase 1 Live</span>
+                <span className="text-[10px] text-slate-400">Live</span>
               </div>
-              <div className="py-2 space-y-2">
-                <div className="p-2 bg-blue-50/50 border border-blue-100 rounded-md">
-                  <span className="font-medium text-blue-900 block">Interview Invitation Received</span>
-                  <span className="text-[11px] text-blue-700">Delivery Hero invited you to Technical Pairing.</span>
-                </div>
-                <div className="p-2 bg-purple-50/50 border border-purple-100 rounded-md">
-                  <span className="font-medium text-purple-900 block">New Job Qualified</span>
-                  <span className="text-[11px] text-purple-700">Lead Platform Engineer at Zalando (Strong Fit).</span>
-                </div>
+              <div className="py-4 text-center text-slate-500">
+                No new notifications
               </div>
             </div>
           )}
@@ -168,11 +168,10 @@ export const Header: React.FC<HeaderProps> = ({ onToggleMobileMenu }) => {
           </div>
           <div className="hidden sm:block text-left">
             <span className="font-semibold text-xs text-[#0F172A] block leading-tight">
-              {mockCandidate.name}
+              {candidate.name}
             </span>
             <span className="text-[11px] text-[#64748B] block leading-tight font-medium">
-              {/* STRICT RULE: Candidate current title is Senior DevOps Engineer */}
-              {mockCandidate.currentRole}
+              {candidate.currentRole}
             </span>
           </div>
         </div>

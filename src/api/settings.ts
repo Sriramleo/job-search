@@ -1,41 +1,23 @@
 import { apiClient } from './client';
-import { store } from './store';
 import { Candidate, CandidateEvidence } from '../types';
 
 export const settingsApi = {
   async getCandidate(): Promise<Candidate> {
-    try {
-      return await apiClient.get<Candidate>('/candidates/cand-sriram');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      console.warn('Candidate API call failed, falling back to mock store:', err);
-      return store.getCandidate();
-    }
+    return await apiClient.get<Candidate>('/candidates/cand-sriram');
   },
 
   async updateCandidate(update: Partial<Candidate>): Promise<Candidate> {
-    try {
-      return await apiClient.patch<Candidate>('/candidates/cand-sriram', update);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.updateCandidate(update);
-    }
+    return await apiClient.patch<Candidate>('/candidates/cand-sriram', update);
   },
 
   async getCandidateEvidence(): Promise<CandidateEvidence[]> {
-    try {
-      return await apiClient.get<CandidateEvidence[]>('/candidates/cand-sriram/evidence');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.getCandidateEvidence();
-    }
+    return await apiClient.get<CandidateEvidence[]>('/candidates/cand-sriram/evidence');
   },
 
   async getAIProviders() {
     try {
       return await apiClient.get('/system/ai-providers');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
+    } catch {
       return [];
     }
   },
@@ -47,11 +29,11 @@ export const settingsApi = {
   async getImmigrationParameters() {
     try {
       return await apiClient.get('/system/immigration-parameters');
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
+    } catch {
       return [];
     }
   },
 };
 
 export const candidateApi = settingsApi;
+

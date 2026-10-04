@@ -64,10 +64,12 @@ export const Tasks: React.FC = () => {
     fetchTasks();
   };
 
+  const todayStr = new Date().toISOString().split('T')[0];
+
   const filteredTasks = tasks.filter((t) => {
-    if (activeTab === 'today') return t.status !== 'Completed' && (t.dueDate === '2026-10-01' || t.dueDate === '2026-10-02');
-    if (activeTab === 'upcoming') return t.status !== 'Completed' && t.dueDate > '2026-10-02';
-    if (activeTab === 'overdue') return t.status === 'Overdue' || (t.status !== 'Completed' && t.dueDate < '2026-10-01');
+    if (activeTab === 'today') return t.status !== 'Completed' && t.dueDate <= todayStr;
+    if (activeTab === 'upcoming') return t.status !== 'Completed' && t.dueDate > todayStr;
+    if (activeTab === 'overdue') return t.status === 'Overdue' || (t.status !== 'Completed' && t.dueDate < todayStr);
     if (activeTab === 'completed') return t.status === 'Completed';
     return true;
   });
@@ -97,9 +99,9 @@ export const Tasks: React.FC = () => {
       <Tabs
         variant="pills"
         tabs={[
-          { id: 'today', label: 'Due Today / Soon', count: tasks.filter((t) => t.status !== 'Completed' && (t.dueDate === '2026-10-01' || t.dueDate === '2026-10-02')).length },
-          { id: 'upcoming', label: 'Upcoming', count: tasks.filter((t) => t.status !== 'Completed' && t.dueDate > '2026-10-02').length },
-          { id: 'overdue', label: 'Overdue', count: tasks.filter((t) => t.status === 'Overdue' || (t.status !== 'Completed' && t.dueDate < '2026-10-01')).length },
+          { id: 'today', label: 'Due Today / Soon', count: tasks.filter((t) => t.status !== 'Completed' && t.dueDate <= todayStr).length },
+          { id: 'upcoming', label: 'Upcoming', count: tasks.filter((t) => t.status !== 'Completed' && t.dueDate > todayStr).length },
+          { id: 'overdue', label: 'Overdue', count: tasks.filter((t) => t.status === 'Overdue' || (t.status !== 'Completed' && t.dueDate < todayStr)).length },
           { id: 'completed', label: 'Completed', count: tasks.filter((t) => t.status === 'Completed').length },
         ]}
         activeTab={activeTab}

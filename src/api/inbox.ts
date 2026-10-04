@@ -1,5 +1,4 @@
 import { apiClient } from './client';
-import { store } from './store';
 import { Communication } from '../types';
 
 export interface CommunicationFilterParams {
@@ -23,37 +22,21 @@ export interface GmailMessageFilterParams {
 
 export const inboxApi = {
   async getCommunications(folderFilter?: string | CommunicationFilterParams): Promise<Communication[]> {
-    try {
-      const params: Record<string, any> = {};
-      if (typeof folderFilter === 'string') {
-        if (folderFilter && folderFilter !== 'All') params.folder = folderFilter;
-      } else if (folderFilter) {
-        if (folderFilter.folder && folderFilter.folder !== 'All') params.folder = folderFilter.folder;
-        if (folderFilter.jobId) params.jobId = folderFilter.jobId;
-        if (folderFilter.applicationId) params.applicationId = folderFilter.applicationId;
-        if (folderFilter.limit) params.limit = folderFilter.limit;
-        if (folderFilter.skip) params.skip = folderFilter.skip;
-      }
-      return await apiClient.get<Communication[]>('/communications', { params });
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      console.warn('Communications API call failed, falling back to mock store:', err);
-      let items = store.getCommunications();
-      const folder = typeof folderFilter === 'string' ? folderFilter : folderFilter?.folder;
-      if (folder && folder !== 'All') {
-        items = items.filter((c) => c.folder === folder);
-      }
-      return items;
+    const params: Record<string, any> = {};
+    if (typeof folderFilter === 'string') {
+      if (folderFilter && folderFilter !== 'All') params.folder = folderFilter;
+    } else if (folderFilter) {
+      if (folderFilter.folder && folderFilter.folder !== 'All') params.folder = folderFilter.folder;
+      if (folderFilter.jobId) params.jobId = folderFilter.jobId;
+      if (folderFilter.applicationId) params.applicationId = folderFilter.applicationId;
+      if (folderFilter.limit) params.limit = folderFilter.limit;
+      if (folderFilter.skip) params.skip = folderFilter.skip;
     }
+    return await apiClient.get<Communication[]>('/communications', { params });
   },
 
   async markAsRead(id: string): Promise<Communication> {
-    try {
-      return await apiClient.patch<Communication>(`/communications/${id}`);
-    } catch (err) {
-      if (import.meta.env.PROD) throw err;
-      return store.markCommunicationAsRead(id);
-    }
+    return await apiClient.patch<Communication>(`/communications/${id}`);
   },
 
   // Phase 8 Gmail endpoints

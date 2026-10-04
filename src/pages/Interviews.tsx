@@ -18,7 +18,7 @@ import { Tabs } from '../components/ui/Tabs';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { Modal } from '../components/ui/Modal';
-import { LoadingSkeleton } from '../components/ui/FeedbackStates';
+import { LoadingSkeleton, EmptyState } from '../components/ui/FeedbackStates';
 
 export const Interviews: React.FC = () => {
   const [interviews, setInterviews] = useState<Interview[]>([]);
@@ -66,69 +66,76 @@ export const Interviews: React.FC = () => {
         onChange={setActiveTab}
       />
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {filteredInterviews.map((int) => (
-          <Card
-            key={int.id}
-            padding="md"
-            className="hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
-          >
-            <div className="space-y-3" onClick={() => setSelectedInterview(int)}>
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
-                  {int.companyName}
-                </span>
-                <Badge variant={int.status === 'Scheduled' ? 'blue' : 'green'}>
-                  {int.status}
-                </Badge>
-              </div>
-
-              <div>
-                <span className="font-semibold text-xs text-slate-800 block">{int.round}</span>
-                <span className="text-[11px] text-[#64748B] block mt-0.5">{int.jobTitle}</span>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-100">
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{new Date(int.scheduledDate).toLocaleDateString()}</span>
+      {filteredInterviews.length === 0 ? (
+        <EmptyState
+          title="No data available"
+          description="No interviews scheduled in this view."
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {filteredInterviews.map((int) => (
+            <Card
+              key={int.id}
+              padding="md"
+              className="hover:border-slate-300 transition-all cursor-pointer group flex flex-col justify-between"
+            >
+              <div className="space-y-3" onClick={() => setSelectedInterview(int)}>
+                <div className="flex items-center justify-between">
+                  <span className="font-bold text-sm text-[#0F172A] group-hover:text-[#2563EB] transition-colors">
+                    {int.companyName}
+                  </span>
+                  <Badge variant={int.status === 'Scheduled' ? 'blue' : 'green'}>
+                    {int.status}
+                  </Badge>
                 </div>
-                <div className="flex items-center gap-1.5 text-slate-700">
-                  <Clock className="w-3.5 h-3.5 text-slate-400" />
-                  <span>{int.durationMinutes} mins</span>
-                </div>
-              </div>
 
-              <div className="space-y-1 text-xs">
-                <span className="text-[11px] font-semibold text-[#64748B] block">Interviewers:</span>
-                <span className="text-[#0F172A] font-medium">{int.interviewerName} ({int.interviewerRole})</span>
-              </div>
-
-              {int.technicalTopics.length > 0 && (
                 <div>
-                  <span className="text-[11px] font-semibold text-[#64748B] block mb-1">Topics:</span>
-                  <div className="flex flex-wrap gap-1">
-                    {int.technicalTopics.slice(0, 2).map((t, idx) => (
-                      <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
-                        {t}
-                      </span>
-                    ))}
+                  <span className="font-semibold text-xs text-slate-800 block">{int.round}</span>
+                  <span className="text-[11px] text-[#64748B] block mt-0.5">{int.jobTitle}</span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-lg text-xs border border-slate-100">
+                  <div className="flex items-center gap-1.5 text-slate-700">
+                    <Calendar className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{new Date(int.scheduledDate).toLocaleDateString()}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-slate-700">
+                    <Clock className="w-3.5 h-3.5 text-slate-400" />
+                    <span>{int.durationMinutes} mins</span>
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
-              <span className="text-[11px] text-blue-600 font-semibold flex items-center gap-1">
-                <Video className="w-3.5 h-3.5" /> {int.interviewType}
-              </span>
-              <Button variant="secondary" size="sm" onClick={() => setSelectedInterview(int)}>
-                Open Prep Notes
-              </Button>
-            </div>
-          </Card>
-        ))}
-      </div>
+                <div className="space-y-1 text-xs">
+                  <span className="text-[11px] font-semibold text-[#64748B] block">Interviewers:</span>
+                  <span className="text-[#0F172A] font-medium">{int.interviewerName} ({int.interviewerRole})</span>
+                </div>
+
+                {int.technicalTopics.length > 0 && (
+                  <div>
+                    <span className="text-[11px] font-semibold text-[#64748B] block mb-1">Topics:</span>
+                    <div className="flex flex-wrap gap-1">
+                      {int.technicalTopics.slice(0, 2).map((t, idx) => (
+                        <span key={idx} className="text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-medium">
+                          {t}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="pt-3 mt-3 border-t border-slate-100 flex items-center justify-between">
+                <span className="text-[11px] text-blue-600 font-semibold flex items-center gap-1">
+                  <Video className="w-3.5 h-3.5" /> {int.interviewType}
+                </span>
+                <Button variant="secondary" size="sm" onClick={() => setSelectedInterview(int)}>
+                  Open Prep Notes
+                </Button>
+              </div>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {/* Interview Prep Detail Modal */}
       {selectedInterview && (

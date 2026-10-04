@@ -77,7 +77,8 @@ export const Applications: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => navigate('/applications/app-zalando-01')}
+              disabled={applications.length === 0}
+              onClick={() => applications.length > 0 && navigate(`/applications/${applications[0].id}`)}
               icon={<ArrowRight className="w-3.5 h-3.5" />}
               iconPosition="right"
             >

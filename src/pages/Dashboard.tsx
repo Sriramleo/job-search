@@ -141,20 +141,21 @@ export const Dashboard: React.FC = () => {
   };
 
   // Pipeline stage counts from overview or local apps
-  const pipelineCounts = {
-    discovered: overview?.totalDiscoveredJobs ?? 48,
-    qualified: overview?.totalQualifiedJobs ?? jobs.filter((j) => j.status === 'Qualified').length,
-    preparing: overview?.applicationsAwaitingReview ?? applications.filter((a) => a.stage === 'Preparing').length,
-    applied: overview?.applicationsSubmitted ?? applications.filter((a) => a.stage === 'Applied').length,
-    interview: overview?.interviews ?? 3,
-    offer: overview?.offers ?? 0,
-  };
-
-  const qualifiedJobsCount = overview?.totalQualifiedJobs ?? jobs.filter((j) => j.status === 'Qualified').length;
+  const qualifiedJobsCount = overview?.totalQualifiedJobs ?? jobs.length;
   const readyAppsCount = overview?.applicationsAwaitingReview ?? applications.filter((a) => a.stage === 'Preparing').length;
   const appliedCount = overview?.applicationsSubmitted ?? applications.filter((a) => a.stage === 'Applied').length;
-  const interviewsCount = overview?.interviews ?? 3;
+  const interviewsCount = overview?.interviews ?? 0;
   const offersCount = overview?.offers ?? 0;
+
+  const pipelineCounts = {
+    discovered: overview?.totalDiscoveredJobs ?? jobs.length,
+    qualified: qualifiedJobsCount,
+    preparing: readyAppsCount,
+    applied: appliedCount,
+    interview: interviewsCount,
+    offer: offersCount,
+  };
+
 
   const formatSalary = (min?: number, max?: number) => {
     if (!min || min <= 0 || !max || max <= 0) return 'Salary: Unknown';
@@ -292,7 +293,10 @@ export const Dashboard: React.FC = () => {
           </div>
 
           <Card padding="none">
-            <div className="divide-y divide-slate-100">
+            {topOpportunities.length === 0 ? (
+              <div className="p-8 text-center text-slate-500 text-sm">No data available</div>
+            ) : (
+              <div className="divide-y divide-slate-100">
               {topOpportunities.map((job) => {
                 const getContextualAction = (j: Job) => {
                   const associatedApp = applications.find((a) => a.jobId === j.id);
@@ -360,6 +364,7 @@ export const Dashboard: React.FC = () => {
                 );
               })}
             </div>
+            )}
           </Card>
 
           {/* APPLICATION PIPELINE WIDGET */}
@@ -409,31 +414,37 @@ export const Dashboard: React.FC = () => {
               </Button>
             </div>
 
-            <div className="space-y-2.5">
-              {actionItems.map((t) => (
-                <div
-                  key={t.id}
-                  onClick={() => handleActionItemClick(t)}
-                  className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs hover:border-blue-300 transition-all cursor-pointer group"
-                >
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="font-semibold text-xs text-[#0F172A] group-hover:text-blue-600 transition-colors leading-snug">
-                      {t.title}
-                    </span>
-                    <Badge variant={t.priority === 'High' ? 'red' : 'amber'} size="sm">
-                      {t.priority}
-                    </Badge>
+            {actionItems.length === 0 ? (
+              <div className="p-6 bg-white rounded-xl border border-[#E2E8F0] text-center text-slate-500 text-xs">
+                No data available
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                {actionItems.map((t) => (
+                  <div
+                    key={t.id}
+                    onClick={() => handleActionItemClick(t)}
+                    className="p-3.5 bg-white rounded-xl border border-[#E2E8F0] shadow-2xs hover:border-blue-300 transition-all cursor-pointer group"
+                  >
+                    <div className="flex items-start justify-between gap-2">
+                      <span className="font-semibold text-xs text-[#0F172A] group-hover:text-blue-600 transition-colors leading-snug">
+                        {t.title}
+                      </span>
+                      <Badge variant={t.priority === 'High' ? 'red' : 'amber'} size="sm">
+                        {t.priority}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-[11px] text-[#64748B] mt-2">
+                      <span className="font-medium text-slate-700">{t.subtitle}</span>
+                      <span className="flex items-center gap-1 text-slate-500">
+                        <Clock className="w-3 h-3" />
+                        <span>{t.reason || 'Pending'}</span>
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center justify-between text-[11px] text-[#64748B] mt-2">
-                    <span className="font-medium text-slate-700">{t.subtitle}</span>
-                    <span className="flex items-center gap-1 text-slate-500">
-                      <Clock className="w-3 h-3" />
-                      <span>{t.reason || 'Pending'}</span>
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* System & Search Snapshot */}
