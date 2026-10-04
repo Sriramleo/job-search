@@ -292,9 +292,12 @@ export const ApplicationWorkspace: React.FC = () => {
     setIsSubmitting(true);
     setSubmissionError(null);
     try {
+      // SAFETY: bind submission authorization to the persisted application record.
+      // The displayed/resolved job object is presentation data and must never be
+      // used as the authoritative job/company identity for the submission request.
       const res = await applicationsApi.approveAndSubmit(application.id, {
-        jobId: job.id,
-        companyId: job.companyId || application.companyId,
+        jobId: application.jobId,
+        companyId: application.companyId,
         cvVariantId: application.cvVariantId,
         approvedBy: 'candidate',
         confirmationAcknowledged: true,
