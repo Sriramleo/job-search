@@ -17,12 +17,13 @@ import {
   Bookmark,
   Share2,
 } from 'lucide-react';
-import { jobsApi, companiesApi, contactsApi } from '../api';
+import { jobsApi, companiesApi, contactsApi, applicationsApi } from '../api';
 import { Job, Company, Contact } from '../types';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { FitBadge, EvidenceBadge, Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { getSourceAttribution, getApplicationRouteAttribution } from '../utils/jobSource';
 import { LoadingSkeleton, ErrorState } from '../components/ui/FeedbackStates';
 
 export const JobDetail: React.FC = () => {
@@ -34,6 +35,21 @@ export const JobDetail: React.FC = () => {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
+  const [isPreparing, setIsPreparing] = useState(false);
+
+  const handlePrepareApplication = async () => {
+    if (!job) return;
+    setIsPreparing(true);
+    try {
+      // Explicit candidate action to prepare application draft
+      const app = await applicationsApi.createApplication(job.id);
+      navigate(`/workspace?jobId=${job.id}&applicationId=${app.id}`);
+    } catch {
+      navigate(`/workspace?jobId=${job.id}`);
+    } finally {
+      setIsPreparing(false);
+    }
+  };
 
   useEffect(() => {
     const fetchJobDetails = async () => {
@@ -108,7 +124,8 @@ export const JobDetail: React.FC = () => {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => navigate('/applications/app-zalando-01')}
+              onClick={handlePrepareApplication}
+              isLoading={isPreparing}
               icon={<ArrowRight className="w-4 h-4" />}
               iconPosition="right"
             >
@@ -339,17 +356,31 @@ export const JobDetail: React.FC = () => {
           >
             <div className="space-y-2 text-xs">
               <div className="p-3 bg-blue-50/70 border border-blue-200 rounded-lg space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="font-bold text-blue-900 block text-xs">
-                    {job.applicationRoute}
-                  </span>
-                  <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
-                    Evidence-Backed
-                  </span>
-                </div>
-                <p className="text-blue-800 text-[11px] leading-relaxed">
-                  {job.routeReason}
-                </p>
+                {(() => {
+                  const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
+                  const sourceAttr = getSourceAttribution(job.source, job.sourceUrl);
+                  return (
+                    <>
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-blue-900 block text-xs">
+                          {routeAttr.label}
+                        </span>
+                        <span className="text-[10px] font-semibold text-blue-700 bg-blue-100 px-2 py-0.5 rounded">
+                          Evidence-Backed
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 my-1">
+                        <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${sourceAttr.colorClasses}`}>
+                          <span className={`w-1.5 h-1.5 rounded-full ${sourceAttr.dotColor}`} />
+                          Source: {sourceAttr.label}
+                        </span>
+                      </div>
+                      <p className="text-blue-800 text-[11px] leading-relaxed">
+                        {job.routeReason || routeAttr.description}
+                      </p>
+                    </>
+                  );
+                })()}
                 <div className="pt-2 border-t border-blue-200/70 text-[10px] text-blue-900/80 flex items-center justify-between">
                   <span>Routing Strategy: Dual-Track</span>
                   <span>ATS Gateway: Active</span>
@@ -359,7 +390,8 @@ export const JobDetail: React.FC = () => {
                 variant="primary"
                 size="sm"
                 className="w-full mt-2"
-                onClick={() => navigate('/applications/app-zalando-01')}
+                onClick={handlePrepareApplication}
+                isLoading={isPreparing}
               >
                 Launch Application Workspace
               </Button>

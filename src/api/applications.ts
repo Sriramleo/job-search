@@ -23,6 +23,10 @@ export const applicationsApi = {
     return await apiClient.get<Application[]>('/applications', { params: params as any });
   },
 
+  async createApplication(jobId: string, stage = 'Drafting'): Promise<Application> {
+    return await apiClient.post<Application>('/applications', { jobId, stage });
+  },
+
   async getApplication(id: string): Promise<Application | null> {
     try {
       return await apiClient.get<Application>(`/applications/${id}`);
@@ -43,9 +47,10 @@ export const applicationsApi = {
     });
   },
 
-  async getWorkspace(applicationId: string) {
+  async getWorkspace(applicationId: string, jobId?: string): Promise<any> {
     try {
-      return await apiClient.get(`/applications/${applicationId}/workspace`);
+      const params = jobId ? { jobId } : undefined;
+      return await apiClient.get(`/applications/${applicationId}/workspace`, { params });
     } catch (err: any) {
       if (err.status === 404) return null;
       throw err;

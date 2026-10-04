@@ -126,18 +126,24 @@ export const Contacts: React.FC = () => {
 
       {/* Contacts Table */}
       <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-        <table className="w-full text-left text-xs border-collapse">
-          <thead>
-            <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
-              <th className="py-3 px-4 w-[22%]">Name & Title</th>
-              <th className="py-3 px-4 w-[16%]">Company</th>
-              <th className="py-3 px-4 w-[14%]">Relationship</th>
-              <th className="py-3 px-4 w-[18%]">Linked Opportunity</th>
-              <th className="py-3 px-4 w-[12%]">Last Contact</th>
-              <th className="py-3 px-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100">
+        {filteredContacts.length === 0 ? (
+          <EmptyState
+            title="No contacts found"
+            description="No professional contacts in this view. As you network with recruiters and hiring teams, they will be listed here."
+          />
+        ) : (
+          <table className="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
+                <th className="py-3 px-4 w-[22%]">Name & Title</th>
+                <th className="py-3 px-4 w-[16%]">Company</th>
+                <th className="py-3 px-4 w-[14%]">Relationship</th>
+                <th className="py-3 px-4 w-[18%]">Linked Opportunity</th>
+                <th className="py-3 px-4 w-[12%]">Last Contact</th>
+                <th className="py-3 px-4 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100">
             {filteredContacts.map((cnt) => (
               <tr
                 key={cnt.id}
@@ -184,7 +190,8 @@ export const Contacts: React.FC = () => {
             ))}
           </tbody>
         </table>
-      </div>
+      )}
+    </div>
 
       {/* Selected Contact Slide-over Drawer */}
       <ContactDrawer

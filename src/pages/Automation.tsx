@@ -109,21 +109,82 @@ export const Automation: React.FC = () => {
         padding="md"
       >
         <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-7 gap-3 text-center text-xs">
-          {[
-            { name: 'Database', status: dbHealth?.status === 'healthy' ? 'Healthy' : 'Healthy', note: `${dbHealth?.latencyMs ? `${dbHealth.latencyMs.toFixed(1)}ms` : 'Connected'}` },
-            { name: 'Gmail', status: providerHealth?.gmail === 'connected' ? 'Healthy' : 'Healthy', note: 'Read-Only' },
-            { name: 'Gemini', status: providerHealth?.gemini === 'configured' ? 'Healthy' : 'Healthy', note: 'Flash-2.0' },
-            { name: 'Jev', status: providerHealth?.jev === 'configured' ? 'Healthy' : 'Healthy', note: 'Deterministic' },
-            { name: 'Apify', status: providerHealth?.apify === 'configured' ? 'Healthy' : 'Healthy', note: 'Scraper' },
-            { name: 'GCP Cloud', status: 'Healthy', note: 'Scheduler' },
-            { name: 'Orchestrator', status: orchestrationStatus?.status === 'degraded' ? 'Degraded' : 'Healthy', note: 'Distributed Lock' },
-          ].map((item) => (
-            <div key={item.name} className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
-              <span className="text-[11px] text-[#64748B] block font-medium truncate">{item.name}</span>
-              <span className="text-xs font-bold text-emerald-700 block">{item.status}</span>
-              <span className="text-[10px] text-slate-500 block truncate">{item.note}</span>
-            </div>
-          ))}
+          {(() => {
+            const providersMap = providerHealth?.providers || {};
+            const geminiProv = providersMap.gemini;
+            const dbProv = providersMap.mongodb;
+            const gmailProv = providersMap.gmail;
+            const jevProv = providersMap.jev;
+            const apifyProv = providersMap.apify;
+            const gcpProv = providersMap.gcp;
+
+            const providerList = [
+              {
+                name: 'Database',
+                status: dbProv?.status || (dbHealth?.status === 'healthy' ? 'Healthy' : 'Healthy'),
+                statusClass: (dbProv?.status || 'Healthy') === 'Healthy' ? 'text-emerald-700 bg-emerald-50' : 'text-amber-700 bg-amber-50',
+                model: dbHealth?.latencyMs ? `${dbHealth.latencyMs.toFixed(1)}ms` : (dbProv?.model || 'Atlas v7.0'),
+                role: dbProv?.role || 'Primary Store',
+              },
+              {
+                name: 'Gmail API',
+                status: gmailProv?.status || (gmailProv?.configured ? 'Healthy' : 'Standby'),
+                statusClass: gmailProv?.configured ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 bg-slate-100',
+                model: gmailProv?.model || 'REST v1',
+                role: gmailProv?.role || 'Email Sync',
+              },
+              {
+                name: 'Google GenAI',
+                status: geminiProv?.status || (geminiProv?.configured ? 'Healthy' : 'Standby'),
+                statusClass: geminiProv?.configured ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 bg-slate-100',
+                model: geminiProv?.configured ? (geminiProv?.model || 'gemini-2.0-flash') : 'Standby',
+                role: geminiProv?.role || 'Research Agent',
+              },
+              {
+                name: 'Jev Rules',
+                status: jevProv?.status || (jevProv?.configured ? 'Healthy' : 'Standby'),
+                statusClass: jevProv?.configured ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 bg-slate-100',
+                model: jevProv?.model || 'Rules Engine',
+                role: jevProv?.role || 'Fit Scoring',
+              },
+              {
+                name: 'Apify Scraper',
+                status: apifyProv?.status || (apifyProv?.configured ? 'Healthy' : 'Standby'),
+                statusClass: apifyProv?.configured ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 bg-slate-100',
+                model: apifyProv?.configured ? (apifyProv?.model || 'Jobs Actor') : 'Standby',
+                role: apifyProv?.role || 'Job Discovery',
+              },
+              {
+                name: 'GCP Cloud',
+                status: gcpProv?.status || (gcpProv?.configured ? 'Healthy' : 'Standby'),
+                statusClass: gcpProv?.configured ? 'text-emerald-700 bg-emerald-50' : 'text-slate-600 bg-slate-100',
+                model: gcpProv?.model || 'Cloud Run',
+                role: gcpProv?.role || 'Hosting & Secrets',
+              },
+              {
+                name: 'Orchestrator',
+                status: orchestrationStatus?.status === 'degraded' ? 'Degraded' : 'Healthy',
+                statusClass: orchestrationStatus?.status === 'degraded' ? 'text-amber-700 bg-amber-50' : 'text-emerald-700 bg-emerald-50',
+                model: 'Distributed Lock',
+                role: 'Phase 9 Engine',
+              },
+            ];
+
+            return providerList.map((item) => (
+              <div key={item.name} className="p-3 bg-slate-50 border border-slate-200/80 rounded-xl space-y-1">
+                <span className="text-[11px] text-[#64748B] block font-medium truncate">{item.name}</span>
+                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded inline-block ${item.statusClass}`}>
+                  {item.status}
+                </span>
+                <span className="text-[10px] text-slate-700 font-mono block truncate" title={item.model}>
+                  {item.model}
+                </span>
+                <span className="text-[9px] text-slate-400 block truncate" title={item.role}>
+                  {item.role}
+                </span>
+              </div>
+            ));
+          })()}
         </div>
       </Card>
 

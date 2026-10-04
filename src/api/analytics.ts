@@ -152,4 +152,32 @@ export const analyticsApi = {
       return null;
     }
   },
+
+  async getSidebarCounts(): Promise<{
+    jobs: number;
+    companies: number;
+    contacts: number;
+    applications: number;
+    interviews: number;
+    tasks: number;
+    inbox: number;
+    documents: number;
+    research: number;
+  }> {
+    try {
+      return await apiClient.get('/analytics/sidebar-counts');
+    } catch {
+      return {
+        jobs: 0,
+        companies: 0,
+        contacts: 0,
+        applications: 0,
+        interviews: 0,
+        tasks: 0,
+        inbox: 0,
+        documents: 0,
+        research: 0,
+      };
+    }
+  },
 };

@@ -182,7 +182,7 @@ export const Inbox: React.FC = () => {
                   <div className="p-2 bg-slate-50 rounded-lg text-xs flex items-center justify-between">
                     <span className="text-[#64748B]">Linked Position:</span>
                     <span
-                      onClick={() => navigate('/applications/app-zalando-01')}
+                      onClick={() => navigate(selectedComm.linkedApplicationId ? `/applications/${selectedComm.linkedApplicationId}` : '/workspace')}
                       className="font-semibold text-blue-600 hover:underline cursor-pointer"
                     >
                       {selectedComm.linkedJobTitle} ({selectedComm.companyName})

@@ -11,9 +11,11 @@ import {
   ArrowRight,
 } from 'lucide-react';
 import { Job } from '../../types';
+import { applicationsApi } from '../../api';
 import { Drawer } from '../ui/Drawer';
 import { FitBadge, EvidenceBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { getSourceAttribution, getApplicationRouteAttribution } from '../../utils/jobSource';
 
 export interface JobPreviewDrawerProps {
   job: Job | null;
@@ -30,10 +32,14 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
 
   if (!job) return null;
 
-  const handleOpenWorkspace = () => {
+  const handleOpenWorkspace = async () => {
     onClose();
-    // Navigate to application workspace for this job or primary workspace
-    navigate(`/applications/app-zalando-01`);
+    try {
+      const app = await applicationsApi.createApplication(job.id);
+      navigate(`/workspace?jobId=${job.id}&applicationId=${app.id}`);
+    } catch {
+      navigate(`/workspace?jobId=${job.id}`);
+    }
   };
 
   const handleOpenFullJob = () => {
@@ -91,6 +97,29 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
           <div className="mt-0.5">
             <EvidenceBadge status={job.relocationStatus} />
           </div>
+        </div>
+        <div>
+          <span className="text-[#64748B] block text-[11px]">Source / Origin</span>
+          {(() => {
+            const src = getSourceAttribution(job.source, job.sourceUrl);
+            return (
+              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium border mt-0.5 ${src.colorClasses}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${src.dotColor}`} />
+                {src.label}
+              </span>
+            );
+          })()}
+        </div>
+        <div>
+          <span className="text-[#64748B] block text-[11px]">Application Route</span>
+          {(() => {
+            const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
+            return (
+              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium border mt-0.5 ${routeAttr.badgeClasses}`} title={routeAttr.description}>
+                {routeAttr.label}
+              </span>
+            );
+          })()}
         </div>
       </div>
 

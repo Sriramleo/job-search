@@ -46,6 +46,7 @@ export const App: React.FC = () => {
 
             <Route path="applications" element={<Applications />} />
             <Route path="applications/:id" element={<ApplicationWorkspace />} />
+            <Route path="workspace" element={<ApplicationWorkspace />} />
 
             <Route path="companies" element={<Companies />} />
             <Route path="companies/:id" element={<CompanyDetail />} />

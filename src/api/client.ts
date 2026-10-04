@@ -47,16 +47,19 @@ export async function request<T>(endpoint: string, options: RequestOptions = {})
     (headers as Record<string, string>)['X-Request-ID'] ||
     `fe-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
 
+  const isFormData = typeof FormData !== 'undefined' && body instanceof FormData;
   const requestHeaders: Record<string, string> = {
-    'Content-Type': 'application/json',
     'X-Request-ID': requestId,
     ...(headers as Record<string, string>),
   };
+  if (!isFormData && !requestHeaders['Content-Type']) {
+    requestHeaders['Content-Type'] = 'application/json';
+  }
 
   const config: RequestInit = {
     ...customConfig,
     headers: requestHeaders,
-    body: body !== undefined ? (typeof body === 'string' ? body : JSON.stringify(body)) : undefined,
+    body: body !== undefined ? (isFormData ? body : (typeof body === 'string' ? body : JSON.stringify(body))) : undefined,
   };
 
   let response: Response;

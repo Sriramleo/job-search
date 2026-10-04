@@ -1,4 +1,4 @@
-import { apiClient } from './client';
+import { apiClient, API_BASE_URL } from './client';
 import { Document } from '../types';
 
 export interface DocumentFilterParams {
@@ -39,6 +39,14 @@ export const documentsApi = {
 
   async createDocument(doc: Partial<Document>): Promise<Document> {
     return await apiClient.post<Document>('/documents', doc);
+  },
+
+  async uploadDocument(formData: FormData): Promise<Document> {
+    return await apiClient.post<Document>('/documents/upload', formData);
+  },
+
+  getDownloadUrl(id: string): string {
+    return `${API_BASE_URL}/api/documents/${id}/download`;
   },
 };
 

@@ -93,11 +93,17 @@ export const Applications: React.FC = () => {
         <ApplicationKanban applications={applications} />
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
-                <th className="py-3 px-4">Opportunity</th>
-                <th className="py-3 px-4">Stage</th>
+          {applications.length === 0 ? (
+            <EmptyState
+              title="No applications yet"
+              description="Select a qualified job and click Prepare Application to begin preparing your application materials."
+            />
+          ) : (
+            <table className="w-full text-left text-xs border-collapse">
+              <thead>
+                <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
+                  <th className="py-3 px-4">Opportunity</th>
+                  <th className="py-3 px-4">Stage</th>
                 <th className="py-3 px-4">Salary Range</th>
                 <th className="py-3 px-4">Route</th>
                 <th className="py-3 px-4">Automation State</th>
@@ -150,8 +156,9 @@ export const Applications: React.FC = () => {
               ))}
             </tbody>
           </table>
-        </div>
-      )}
-    </div>
-  );
+        )}
+      </div>
+    )}
+  </div>
+);
 };

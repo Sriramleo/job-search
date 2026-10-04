@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   FileText,
   CheckCircle2,
@@ -36,10 +36,12 @@ import { LoadingSkeleton, ErrorState } from '../components/ui/FeedbackStates';
 
 export const ApplicationWorkspace: React.FC = () => {
   const { id } = useParams<{ id: string }>();
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Selected application ID
+  // Selected application ID or query jobId
   const appId = id;
+  const queryJobId = searchParams.get('jobId');
 
   const [application, setApplication] = useState<Application | null>(null);
   const [job, setJob] = useState<Job | null>(null);
@@ -75,39 +77,75 @@ export const ApplicationWorkspace: React.FC = () => {
     const loadWorkspace = async () => {
       setIsLoading(true);
       try {
-        let app = appId ? await applicationsApi.getApplication(appId) : null;
-        if (!app) {
-          // Fallback to first available application
-          const allApps = await applicationsApi.getApplications();
-          app = allApps[0] || null;
+        const targetId = appId || (queryJobId ? `job-${queryJobId.replace('job-', '')}` : 'workspace');
+        let ws: any = null;
+
+        try {
+          ws = await applicationsApi.getWorkspace(targetId, queryJobId || undefined);
+        } catch {
+          ws = null;
         }
-        if (app) {
+
+        // If composite not found, look for existing app or fallback to preview of qualified job
+        if (!ws || !ws.application) {
+          try {
+            const allApps = await applicationsApi.getApplications();
+            if (allApps.length > 0) {
+              ws = await applicationsApi.getWorkspace(allApps[0].id);
+            } else {
+              const jobs = await jobsApi.getJobs({ status: 'Qualified' });
+              if (jobs.length > 0) {
+                // In-memory read-only preview of qualified job (zero writes to DB)
+                ws = await applicationsApi.getWorkspace(jobs[0].id, jobs[0].id);
+              }
+            }
+          } catch (fetchErr) {
+            console.warn('Fallback app loading error:', fetchErr);
+          }
+        }
+
+        if (ws && ws.application) {
+          const app = ws.application;
           setApplication(app);
-          setCoverLetterText(app.coverLetterContent);
-          setReferralText(app.referralMessageDraft);
-          setRecruiterText(app.recruiterMessageDraft);
-          setAnswersList(app.answers);
-          setChecklist(app.validationChecklist);
-          setClaims(app.claims || []);
+          setCoverLetterText(app.coverLetterContent || '');
+          setReferralText(app.referralMessageDraft || '');
+          setRecruiterText(app.recruiterMessageDraft || '');
+          setAnswersList(app.answers || []);
+          setChecklist(app.validationChecklist || {
+            correctJob: true,
+            correctCompany: true,
+            correctCV: true,
+            coverLetterReady: true,
+            requiredQuestionsAnswered: true,
+            workAuthorizationVerified: true,
+            noticePeriodVerified: true,
+            noFabricatedInfo: true,
+            noMissingRequiredFields: true,
+          });
+          setClaims(ws.claims || app.claims || []);
 
-          const [foundJob, cand, candEv, docs] = await Promise.all([
-            jobsApi.getJob(app.jobId),
-            candidateApi.getCandidate(),
-            candidateApi.getCandidateEvidence(),
-            documentsApi.getDocuments(),
-          ]);
-
-          setJob(foundJob);
-          setCandidate(cand);
-          setCandidateEvidence(candEv);
-          setDocuments(docs);
+          const resolvedJob = (ws.job || {
+            id: app.jobId,
+            title: app.jobTitle,
+            companyName: app.companyName,
+            location: app.location,
+            salaryRange: app.salaryRange,
+            status: 'Qualified',
+            applicationRoute: app.route,
+          }) as unknown as Job;
+          setJob(resolvedJob);
+          setCandidate(ws.candidate || null);
+          setCandidateEvidence(ws.candidateEvidence || []);
+          setDocuments(ws.documents || []);
         }
+      } catch (err) {
+        console.error('Error initializing workspace:', err);
       } finally {
         setIsLoading(false);
       }
     };
     loadWorkspace();
-  }, [appId]);
+  }, [appId, queryJobId]);
 
   const handleAttestClaim = async (claimId: string) => {
     if (!application) return;
@@ -143,13 +181,31 @@ export const ApplicationWorkspace: React.FC = () => {
 
   if (!application || !job) {
     return (
-      <ErrorState
-        title="Application Workspace Unavailable"
-        message="Could not load application workspace for this opportunity."
-        onRetry={() => navigate('/applications')}
-      />
+      <div className="p-6">
+        <ErrorState
+          title="No Active Applications"
+          message="No active application draft found. Browse qualified opportunities to launch a targeted workspace."
+          onRetry={() => navigate('/jobs')}
+        />
+      </div>
     );
   }
+
+  // Explicitly create persistent draft from preview
+  const handleCreateDraft = async () => {
+    if (!job) return;
+    setIsSaving(true);
+    try {
+      const newApp = await applicationsApi.createApplication(job.id);
+      setApplication(newApp);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2500);
+    } catch (err) {
+      console.error('Failed to create application draft:', err);
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   // Save current workspace state
   const handleSaveDraft = async () => {
@@ -307,6 +363,31 @@ export const ApplicationWorkspace: React.FC = () => {
           </div>
         }
       />
+
+      {/* PREVIEW MODE BANNER (When viewing workspace before application draft is created) */}
+      {application?.id?.startsWith('preview-') && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-2xs">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div>
+              <h4 className="text-xs font-bold text-amber-900">Preview Mode — No Application Draft Created</h4>
+              <p className="text-xs text-amber-700 mt-0.5">
+                You are currently previewing role requirements and templates for <strong>{job.title}</strong> at <strong>{job.companyName}</strong>. No application record exists in your pipeline.
+              </p>
+            </div>
+          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={handleCreateDraft}
+            isLoading={isSaving}
+            className="shrink-0"
+          >
+            <Sparkles className="w-4 h-4 mr-1.5" />
+            Prepare Application Draft
+          </Button>
+        </div>
+      )}
 
       {/* THREE-COLUMN WORKSPACE LAYOUT */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">

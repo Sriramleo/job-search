@@ -24,6 +24,7 @@ import { KPI } from '../components/ui/KPI';
 import { Card } from '../components/ui/Card';
 import { FitBadge, Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
+import { getSourceAttribution, getApplicationRouteAttribution } from '../utils/jobSource';
 import { LoadingSkeleton } from '../components/ui/FeedbackStates';
 
 export const Dashboard: React.FC = () => {
@@ -345,10 +346,21 @@ export const Dashboard: React.FC = () => {
                         </span>
                       </div>
 
-                      <div className="text-[11px] text-[#64748B] flex items-center gap-2 pt-0.5">
-                        <span className="font-medium text-slate-500">Route:</span>
-                        <span>{job.applicationRoute}</span>
-                      </div>
+                      {(() => {
+                        const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
+                        const srcAttr = getSourceAttribution(job.source, job.sourceUrl);
+                        return (
+                          <div className="text-[11px] text-[#64748B] flex items-center gap-2 pt-0.5 flex-wrap">
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${srcAttr.colorClasses}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${srcAttr.dotColor}`} />
+                              {srcAttr.label}
+                            </span>
+                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${routeAttr.badgeClasses}`} title={routeAttr.description}>
+                              {routeAttr.label}
+                            </span>
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <div className="shrink-0 flex items-center gap-2">

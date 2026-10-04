@@ -1,5 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
 import {
   LayoutDashboard,
   Briefcase,
@@ -18,44 +19,64 @@ import {
   ShieldCheck,
   ChevronRight,
 } from 'lucide-react';
+import { analyticsApi } from '../../api';
 
 interface SidebarProps {
   isMobileOpen: boolean;
   onCloseMobile: () => void;
 }
 
+interface NavItem {
+  label: string;
+  path: string;
+  icon: React.ComponentType<{ className?: string }>;
+  count?: number;
+  badge?: string;
+}
+
+interface NavSection {
+  group: string;
+  items: NavItem[];
+}
+
 export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile }) => {
-  const navSections = [
+  const { data: counts } = useQuery({
+    queryKey: ['sidebar-counts'],
+    queryFn: () => analyticsApi.getSidebarCounts(),
+    refetchInterval: 30000,
+  });
+
+  const navSections: NavSection[] = [
     {
       group: 'CORE',
       items: [
         { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard },
-        { label: 'Jobs', path: '/jobs', icon: Briefcase, count: 42 },
-        { label: 'Companies', path: '/companies', icon: Building2, count: 10 },
-        { label: 'Contacts', path: '/contacts', icon: Users, count: 10 },
+        { label: 'Jobs', path: '/jobs', icon: Briefcase, count: counts?.jobs },
+        { label: 'Companies', path: '/companies', icon: Building2, count: counts?.companies },
+        { label: 'Contacts', path: '/contacts', icon: Users, count: counts?.contacts },
       ],
     },
     {
       group: 'EXECUTION',
       items: [
-        { label: 'Applications', path: '/applications', icon: Layers, count: 10 },
-        { label: 'Application Workspace', path: '/applications/app-zalando-01', icon: FileCode2, badge: 'Active' },
-        { label: 'Documents', path: '/documents', icon: FileText },
-        { label: 'Interviews', path: '/interviews', icon: CalendarCheck2, count: 3 },
-        { label: 'Tasks', path: '/tasks', icon: CheckSquare, count: 15 },
+        { label: 'Applications', path: '/applications', icon: Layers, count: counts?.applications },
+        { label: 'Application Workspace', path: '/workspace', icon: FileCode2, badge: 'Active' },
+        { label: 'Documents', path: '/documents', icon: FileText, count: counts?.documents },
+        { label: 'Interviews', path: '/interviews', icon: CalendarCheck2, count: counts?.interviews },
+        { label: 'Tasks', path: '/tasks', icon: CheckSquare, count: counts?.tasks },
       ],
     },
     {
       group: 'INTELLIGENCE',
       items: [
-        { label: 'Research & Evidence', path: '/research', icon: SearchCode },
+        { label: 'Research & Evidence', path: '/research', icon: SearchCode, count: counts?.research },
         { label: 'Analytics', path: '/analytics', icon: BarChart3 },
       ],
     },
     {
       group: 'COMMUNICATION',
       items: [
-        { label: 'Inbox', path: '/inbox', icon: Mail, count: 4 },
+        { label: 'Inbox', path: '/inbox', icon: Mail, count: counts?.inbox },
       ],
     },
     {
@@ -164,9 +185,12 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
 
         {/* Relocation Status Pill in Footer */}
         <div className="p-3 border-t border-[#E2E8F0] bg-slate-50/70">
-          <div className="p-2.5 rounded-lg bg-white border border-[#E2E8F0] shadow-2xs">
+          <NavLink
+            to="/settings#relocation"
+            className="block p-2.5 rounded-lg bg-white border border-[#E2E8F0] shadow-2xs hover:border-blue-300 hover:shadow-xs transition-all cursor-pointer group"
+          >
             <div className="flex items-center justify-between text-xs">
-              <span className="font-medium text-[#0F172A]">Germany Relocation</span>
+              <span className="font-medium text-[#0F172A] group-hover:text-blue-600 transition-colors">Germany Relocation</span>
               <span className="px-1.5 py-0.2 text-[10px] font-semibold rounded bg-emerald-100 text-emerald-800">
                 Skilled Worker / Blue Card
               </span>
@@ -175,7 +199,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
               <span>German Level: A1</span>
               <span>Target: €80K+</span>
             </div>
-          </div>
+          </NavLink>
         </div>
       </aside>
     </>

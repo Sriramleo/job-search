@@ -4,6 +4,7 @@ import { ArrowUpDown, ExternalLink, ChevronRight, Eye } from 'lucide-react';
 import { Job } from '../../types';
 import { FitBadge, EvidenceBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
+import { getSourceAttribution, getApplicationRouteAttribution } from '../../utils/jobSource';
 
 export interface JobTableProps {
   jobs: Job[];
@@ -95,10 +96,21 @@ export const JobTable: React.FC<JobTableProps> = ({
                     </div>
                   </td>
 
-                  {/* Company */}
+                  {/* Company & Source */}
                   <td className="py-3.5 px-4 font-medium text-[#0F172A]">
-                    <div className="flex items-center gap-1.5">
-                      <span>{job.companyName}</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1.5">
+                        <span>{job.companyName}</span>
+                      </div>
+                      {(() => {
+                        const src = getSourceAttribution(job.source, job.sourceUrl);
+                        return (
+                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${src.colorClasses}`}>
+                            <span className={`w-1.5 h-1.5 rounded-full ${src.dotColor}`} />
+                            {src.label}
+                          </span>
+                        );
+                      })()}
                     </div>
                   </td>
 
@@ -126,9 +138,17 @@ export const JobTable: React.FC<JobTableProps> = ({
 
                   {/* Route */}
                   <td className="py-3.5 px-4 text-[#475569]">
-                    <span className="inline-block max-w-[140px] truncate" title={job.applicationRoute}>
-                      {job.applicationRoute}
-                    </span>
+                    {(() => {
+                      const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
+                      return (
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${routeAttr.badgeClasses}`}
+                          title={routeAttr.description}
+                        >
+                          {routeAttr.label}
+                        </span>
+                      );
+                    })()}
                   </td>
 
                   {/* Actions */}
