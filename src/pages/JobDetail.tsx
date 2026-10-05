@@ -16,6 +16,7 @@ import {
   FileText,
   Bookmark,
   Share2,
+  RefreshCw,
 } from 'lucide-react';
 import { jobsApi, companiesApi, contactsApi, applicationsApi } from '../api';
 import { Job, Company, Contact } from '../types';
@@ -36,6 +37,31 @@ export const JobDetail: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaved, setIsSaved] = useState(false);
   const [isPreparing, setIsPreparing] = useState(false);
+  const [isVerifyingFreshness, setIsVerifyingFreshness] = useState(false);
+
+  const effectiveAppUrl = job?.applicationUrl || job?.jobUrl || job?.sourceUrl;
+  const isAppTypeUnknown = !job?.applicationType || job?.applicationType === 'Unknown' || !effectiveAppUrl;
+  const isUnavailable = job?.verificationStatus === 'JOB_UNAVAILABLE';
+  const isPreparationDisabled = isAppTypeUnknown || isUnavailable;
+
+  const preparationDisabledReason = isUnavailable
+    ? 'Direct application preparation is unavailable because this job opening has expired or is unreachable.'
+    : isAppTypeUnknown
+    ? 'Direct application preparation is unavailable because the job does not provide a valid official application URL or supported ATS endpoint.'
+    : null;
+
+  const handleVerifyFreshness = async () => {
+    if (!job) return;
+    setIsVerifyingFreshness(true);
+    try {
+      const updated = await jobsApi.verifyFreshness(job.id);
+      setJob(updated);
+    } catch (err) {
+      console.error('Failed to verify freshness:', err);
+    } finally {
+      setIsVerifyingFreshness(false);
+    }
+  };
 
   const handlePrepareApplication = async () => {
     if (!job) return;
@@ -112,6 +138,15 @@ export const JobDetail: React.FC = () => {
             >
               {isSaved ? 'Saved' : 'Save'}
             </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleVerifyFreshness}
+              isLoading={isVerifyingFreshness}
+              icon={<RefreshCw className={`w-3.5 h-3.5 ${isVerifyingFreshness ? 'animate-spin' : ''}`} />}
+            >
+              Verify Freshness
+            </Button>
             <a
               href={job.sourceUrl}
               target="_blank"
@@ -126,6 +161,8 @@ export const JobDetail: React.FC = () => {
               size="sm"
               onClick={handlePrepareApplication}
               isLoading={isPreparing}
+              disabled={isPreparationDisabled}
+              title={preparationDisabledReason || undefined}
               icon={<ArrowRight className="w-4 h-4" />}
               iconPosition="right"
             >
@@ -134,6 +171,17 @@ export const JobDetail: React.FC = () => {
           </div>
         }
       />
+
+      {/* DISALLOW PREPARATION BANNER (When job is unknown application type or unavailable) */}
+      {isPreparationDisabled && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 shadow-xs">
+          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <div className="text-xs text-amber-900">
+            <span className="font-semibold block text-sm mb-0.5">Application Preparation Blocked</span>
+            <p className="leading-relaxed">{preparationDisabledReason}</p>
+          </div>
+        </div>
+      )}
 
       {/* FIT SUMMARY ROW (Categorical labels: Strong / Good / Moderate / Weak) */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
@@ -345,6 +393,96 @@ export const JobDetail: React.FC = () => {
 
         {/* RIGHT COLUMN: Action Routes, Contacts, Requirements & Timeline (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
+          {/* SOURCE PROVENANCE & APPLICATION INTEGRITY CARD */}
+          <Card
+            header={
+              <div className="flex items-center justify-between w-full">
+                <div className="font-bold text-xs text-[#0F172A] uppercase tracking-wider flex items-center gap-1.5">
+                  <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                  <span>Source Provenance & ATS</span>
+                </div>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase ${
+                  job.verificationStatus === 'VERIFIED'
+                    ? 'bg-emerald-100 text-emerald-800 border border-emerald-200'
+                    : job.verificationStatus === 'JOB_UNAVAILABLE'
+                    ? 'bg-red-100 text-red-800 border border-red-200'
+                    : job.verificationStatus === 'STALE'
+                    ? 'bg-amber-100 text-amber-800 border border-amber-200'
+                    : 'bg-slate-100 text-slate-700 border border-slate-200'
+                }`}>
+                  {job.verificationStatus || 'UNKNOWN'}
+                </span>
+              </div>
+            }
+            padding="md"
+          >
+            <div className="space-y-3 text-xs">
+              <div className="grid grid-cols-2 gap-2 text-[11px]">
+                <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                  <span className="text-slate-500 block text-[10px] uppercase font-semibold">Application Type</span>
+                  <span className="font-semibold text-slate-800">{job.applicationType || 'Unknown'}</span>
+                </div>
+                <div className="p-2 bg-slate-50 rounded border border-slate-100">
+                  <span className="text-slate-500 block text-[10px] uppercase font-semibold">ATS Platform</span>
+                  <span className="font-semibold text-slate-800">{job.atsType || 'Unknown'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1.5 pt-1 text-[11px]">
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Discovery Source:</span>
+                  <span className="font-medium text-slate-800">{job.source || 'Direct Scrape'}</span>
+                </div>
+                {job.providerJobId && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-slate-500">Provider Job ID:</span>
+                    <span className="font-mono text-slate-700">{job.providerJobId}</span>
+                  </div>
+                )}
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Discovered:</span>
+                  <span className="text-slate-700">{job.discoveredAt ? new Date(job.discoveredAt).toLocaleDateString() : job.postedDate}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Last Verified:</span>
+                  <span className="text-slate-700">{job.lastVerifiedAt ? new Date(job.lastVerifiedAt).toLocaleString() : 'Not verified yet'}</span>
+                </div>
+              </div>
+
+              <div className="space-y-1 pt-2 border-t border-slate-100 text-[11px]">
+                {job.jobUrl && (
+                  <div className="flex items-center justify-between truncate">
+                    <span className="text-slate-500 shrink-0 mr-2">Job URL:</span>
+                    <a href={job.jobUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate inline-flex items-center gap-1">
+                      <span className="truncate">{job.jobUrl}</span>
+                      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                    </a>
+                  </div>
+                )}
+                {job.applicationUrl && (
+                  <div className="flex items-center justify-between truncate">
+                    <span className="text-slate-500 shrink-0 mr-2">Application URL:</span>
+                    <a href={job.applicationUrl} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline truncate inline-flex items-center gap-1 font-medium">
+                      <span className="truncate">{job.applicationUrl}</span>
+                      <ExternalLink className="w-2.5 h-2.5 shrink-0" />
+                    </a>
+                  </div>
+                )}
+              </div>
+
+              <Button
+                variant="secondary"
+                size="sm"
+                className="w-full mt-1"
+                onClick={handleVerifyFreshness}
+                isLoading={isVerifyingFreshness}
+                icon={<RefreshCw className={`w-3.5 h-3.5 ${isVerifyingFreshness ? 'animate-spin' : ''}`} />}
+              >
+                Verify Live Reachability
+              </Button>
+            </div>
+          </Card>
+
           {/* RECOMMENDED APPLICATION ROUTE */}
           <Card
             header={
@@ -392,9 +530,16 @@ export const JobDetail: React.FC = () => {
                 className="w-full mt-2"
                 onClick={handlePrepareApplication}
                 isLoading={isPreparing}
+                disabled={isPreparationDisabled}
+                title={preparationDisabledReason || undefined}
               >
                 Launch Application Workspace
               </Button>
+              {isPreparationDisabled && (
+                <p className="text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
+                  {preparationDisabledReason}
+                </p>
+              )}
             </div>
           </Card>
 

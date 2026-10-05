@@ -49,5 +49,9 @@ export const jobsApi = {
   async updateJob(id: string, update: Partial<Job>): Promise<Job> {
     return await apiClient.patch<Job>(`/jobs/${id}`, update);
   },
+
+  async verifyFreshness(id: string): Promise<Job> {
+    return await apiClient.post<Job>(`/jobs/${id}/verify-freshness`);
+  },
 };
 

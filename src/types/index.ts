@@ -125,6 +125,13 @@ export interface Job {
   sourceUrl: string;
   applicationUrl?: string;
   url?: string;
+  atsType?: string;
+  providerJobId?: string;
+  jobUrl?: string;
+  discoveredAt?: string;
+  lastVerifiedAt?: string;
+  verificationStatus?: 'VERIFIED' | 'STALE' | 'UNKNOWN' | 'JOB_UNAVAILABLE';
+  applicationType?: 'Company Careers / Internal' | 'External ATS' | 'External Job Board' | 'Unknown';
   keySkills: string[];
   description: string;
   whyMatchesProfile: {
