@@ -64,6 +64,60 @@ export function getSourceAttribution(source?: string | null, sourceUrl?: string 
     };
   }
 
+  if (url.includes('arbeitsagentur.de') || s.includes('bundesagentur') || s.includes('arbeitsagentur')) {
+    return {
+      label: 'Bundesagentur für Arbeit',
+      sourceType: 'Board',
+      colorClasses: 'bg-rose-50 text-rose-800 border-rose-200',
+      dotColor: 'bg-rose-600',
+    };
+  }
+
+  if (url.includes('xing.com') || s.includes('xing')) {
+    return {
+      label: 'XING Jobs',
+      sourceType: 'Board',
+      colorClasses: 'bg-emerald-50 text-emerald-800 border-emerald-300',
+      dotColor: 'bg-[#006567]',
+    };
+  }
+
+  if (url.includes('jobware.de') || s.includes('jobware')) {
+    return {
+      label: 'Jobware',
+      sourceType: 'Board',
+      colorClasses: 'bg-purple-50 text-purple-700 border-purple-200',
+      dotColor: 'bg-purple-600',
+    };
+  }
+
+  if (url.includes('arbeitnow.com') || url.includes('honeypot.io') || s.includes('honeypot') || s.includes('arbeitnow')) {
+    return {
+      label: 'Honeypot / Tech Feed',
+      sourceType: 'Board',
+      colorClasses: 'bg-amber-50 text-amber-800 border-amber-200',
+      dotColor: 'bg-amber-500',
+    };
+  }
+
+  if (url.includes('indeed.com') || s.includes('indeed')) {
+    return {
+      label: 'Indeed Germany',
+      sourceType: 'Board',
+      colorClasses: 'bg-sky-50 text-sky-800 border-sky-200',
+      dotColor: 'bg-[#003A9B]',
+    };
+  }
+
+  if (url.includes('stepstone.de') || s.includes('stepstone')) {
+    return {
+      label: 'StepStone Germany',
+      sourceType: 'Board',
+      colorClasses: 'bg-cyan-50 text-cyan-800 border-cyan-200',
+      dotColor: 'bg-cyan-600',
+    };
+  }
+
   if (s.includes('careers') || s.includes('company')) {
     return {
       label: 'Company Careers',

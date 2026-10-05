@@ -469,6 +469,10 @@ export const JobDetail: React.FC = () => {
                   <span className="text-slate-500">Discovery Source:</span>
                   <span className="font-medium text-slate-800">{job.source || 'Direct Scrape'}</span>
                 </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-slate-500">Provider:</span>
+                  <span className="font-medium text-slate-800">{job.atsType || job.source || 'Direct Source'}</span>
+                </div>
                 {job.providerJobId && (
                   <div className="flex items-center justify-between">
                     <span className="text-slate-500">Provider Job ID:</span>
@@ -476,12 +480,12 @@ export const JobDetail: React.FC = () => {
                   </div>
                 )}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Discovered:</span>
+                  <span className="text-slate-500">First Discovered:</span>
                   <span className="text-slate-700">{job.discoveredAt ? new Date(job.discoveredAt).toLocaleDateString() : job.postedDate}</span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-500">Last Verified:</span>
-                  <span className="text-slate-700">{job.lastVerifiedAt ? new Date(job.lastVerifiedAt).toLocaleString() : 'Not verified yet'}</span>
+                  <span className="text-slate-500">Last Seen:</span>
+                  <span className="text-slate-700">{job.lastVerifiedAt ? new Date(job.lastVerifiedAt).toLocaleString() : (job.discoveredAt ? new Date(job.discoveredAt).toLocaleDateString() : job.postedDate)}</span>
                 </div>
               </div>
 
