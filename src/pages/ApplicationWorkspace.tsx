@@ -251,6 +251,45 @@ export const ApplicationWorkspace: React.FC = () => {
 
   const allChecklistPass = Object.values(checklist).every(Boolean) && unverifiedClaimsCount === 0;
 
+  // Route & ATS Safety Computations (Bug Fix: Remove synthetic ATS URL fallback & enforce route semantics)
+  const effectiveRoute = (application?.route || job?.applicationRoute || 'unknown').trim();
+  const normRoute = effectiveRoute.toLowerCase();
+  const isAtsRouteSupported = [
+    'company_ats',
+    'official_ats',
+    'company_careers',
+    'official application',
+    'referral + official ats',
+    'referral + ats',
+  ].includes(normRoute);
+
+  const rawTargetUrl = (
+    job?.applicationUrl ||
+    (application as any)?.applicationUrl ||
+    job?.url ||
+    job?.sourceUrl ||
+    ''
+  ).trim();
+
+  const isVerifiedAtsUrl = (url: string): boolean => {
+    if (!url) return false;
+    const u = url.toLowerCase();
+    if (
+      u.includes('example.com') ||
+      u.includes('example.org') ||
+      u.includes('example.net') ||
+      u.includes('linkedin.com')
+    ) {
+      return false;
+    }
+    return u.startsWith('http://') || u.startsWith('https://');
+  };
+
+  const hasVerifiedAtsUrl = isVerifiedAtsUrl(
+    job?.applicationUrl || (application as any)?.applicationUrl || ''
+  );
+  const canAutomateAts = isAtsRouteSupported && hasVerifiedAtsUrl;
+
   const effectiveAutomationState: AutomationState =
     unverifiedClaimsCount > 0 && (application.automationState === 'Ready' || application.automationState === 'Submitted')
       ? 'Human Review'
@@ -1018,17 +1057,35 @@ export const ApplicationWorkspace: React.FC = () => {
           </Button>
 
           {/* Phase 18 Explicit Human Approval & Automated Playwright Submission */}
-          <Button
-            variant="success"
-            size="md"
-            disabled={!allChecklistPass}
-            onClick={handleOpenAutomatedSubmit}
-            icon={<Send className="w-4 h-4" />}
-            iconPosition="right"
-            className="px-6 font-bold shadow-md ring-2 ring-emerald-600/20"
-          >
-            Approve & Submit (Playwright ATS)
-          </Button>
+          {canAutomateAts ? (
+            <Button
+              variant="success"
+              size="md"
+              disabled={!allChecklistPass}
+              onClick={handleOpenAutomatedSubmit}
+              icon={<Send className="w-4 h-4" />}
+              iconPosition="right"
+              className="px-6 font-bold shadow-md ring-2 ring-emerald-600/20"
+            >
+              Approve & Submit (Playwright ATS)
+            </Button>
+          ) : rawTargetUrl ? (
+            <a
+              href={rawTargetUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 transition-colors shadow-xs"
+              title="Application requires external job board or direct portal submission"
+            >
+              <ExternalLink className="w-4 h-4 text-slate-600" />
+              External Application Required
+            </a>
+          ) : (
+            <span className="text-xs text-amber-800 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-md font-medium flex items-center gap-1">
+              <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
+              No verified application URL available
+            </span>
+          )}
         </div>
       </div>
 

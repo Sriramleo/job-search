@@ -16,7 +16,14 @@ export type ApplicationRoute =
   | 'Official Application'
   | 'Recruiter Outreach'
   | 'Referral + Official ATS'
-  | 'Referral + ATS';
+  | 'Referral + ATS'
+  | 'company_ats'
+  | 'official_ats'
+  | 'company_careers'
+  | 'external_job_board'
+  | 'linkedin'
+  | 'manual_external'
+  | 'unknown';
 
 export type PipelineStage =
   | 'Discovered'
@@ -116,6 +123,8 @@ export interface Job {
   postedDate: string;
   source: string; // e.g., "LinkedIn", "StepStone.de", "Company Career Site"
   sourceUrl: string;
+  applicationUrl?: string;
+  url?: string;
   keySkills: string[];
   description: string;
   whyMatchesProfile: {
@@ -264,6 +273,7 @@ export interface Application {
   salaryRange: string;
   stage: PipelineStage;
   route: ApplicationRoute;
+  applicationUrl?: string;
   automationState: AutomationState;
   appliedDate?: string;
   updatedDate: string;
