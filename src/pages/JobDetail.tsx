@@ -41,11 +41,15 @@ export const JobDetail: React.FC = () => {
 
   const effectiveAppUrl = job?.applicationUrl || job?.jobUrl || job?.sourceUrl;
   const isAppTypeUnknown = !job?.applicationType || job?.applicationType === 'Unknown' || !effectiveAppUrl;
-  const isUnavailable = job?.verificationStatus === 'JOB_UNAVAILABLE';
-  const isPreparationDisabled = isAppTypeUnknown || isUnavailable;
+  const isVerified = job?.verificationStatus === 'VERIFIED';
+  const isPreparationDisabled = !isVerified || isAppTypeUnknown;
 
-  const preparationDisabledReason = isUnavailable
-    ? 'Direct application preparation is unavailable because this job opening has expired or is unreachable.'
+  const preparationDisabledReason = !isVerified
+    ? (job?.verificationStatus === 'JOB_UNAVAILABLE'
+        ? 'Direct application preparation is unavailable because this job opening is closed, expired, or not found on the official ATS.'
+        : job?.verificationStatus === 'STALE'
+        ? 'Direct application preparation is unavailable because the job posting returned an error or stale state.'
+        : 'Direct application preparation is disabled because job freshness has not yet been verified. Run "Verify Freshness" to confirm the job is actively accepting applications.')
     : isAppTypeUnknown
     ? 'Direct application preparation is unavailable because the job does not provide a valid official application URL or supported ATS endpoint.'
     : null;
@@ -60,6 +64,17 @@ export const JobDetail: React.FC = () => {
       console.error('Failed to verify freshness:', err);
     } finally {
       setIsVerifyingFreshness(false);
+    }
+  };
+
+  const handleSkipJob = async () => {
+    if (!job) return;
+    try {
+      await jobsApi.updateJob(job.id, { status: 'Closed' });
+      navigate('/jobs');
+    } catch (err) {
+      console.error('Failed to skip job:', err);
+      navigate('/jobs');
     }
   };
 
@@ -172,13 +187,34 @@ export const JobDetail: React.FC = () => {
         }
       />
 
-      {/* DISALLOW PREPARATION BANNER (When job is unknown application type or unavailable) */}
+      {/* DISALLOW PREPARATION BANNER (When job is not VERIFIED or application type is unknown) */}
       {isPreparationDisabled && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex items-start gap-3 shadow-xs">
-          <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-          <div className="text-xs text-amber-900">
-            <span className="font-semibold block text-sm mb-0.5">Application Preparation Blocked</span>
-            <p className="leading-relaxed">{preparationDisabledReason}</p>
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-xs">
+          <div className="flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="text-xs text-amber-900">
+              <span className="font-semibold block text-sm mb-0.5">Application Preparation Blocked</span>
+              <p className="leading-relaxed">{preparationDisabledReason}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <a
+              href={`https://www.google.com/search?q=${encodeURIComponent(`${job.companyName} ${job.title} careers`)}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-lg border border-amber-300 bg-white text-amber-900 hover:bg-amber-100/60 shadow-2xs transition-colors"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              <span>Find Official Job Posting</span>
+            </a>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleSkipJob}
+              className="border-amber-300 text-amber-900 hover:bg-amber-100/60"
+            >
+              Skip Job
+            </Button>
           </div>
         </div>
       )}
@@ -536,9 +572,29 @@ export const JobDetail: React.FC = () => {
                 Launch Application Workspace
               </Button>
               {isPreparationDisabled && (
-                <p className="text-[10px] text-amber-700 bg-amber-50 p-1.5 rounded border border-amber-200">
-                  {preparationDisabledReason}
-                </p>
+                <div className="space-y-2 mt-2">
+                  <p className="text-[10px] text-amber-700 bg-amber-50 p-2 rounded border border-amber-200 leading-relaxed">
+                    {preparationDisabledReason}
+                  </p>
+                  <div className="flex items-center justify-between pt-1 text-[11px]">
+                    <a
+                      href={`https://www.google.com/search?q=${encodeURIComponent(`${job.companyName} ${job.title} careers`)}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-medium text-blue-600 hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>Find Official Job</span>
+                    </a>
+                    <button
+                      type="button"
+                      onClick={handleSkipJob}
+                      className="font-medium text-slate-500 hover:text-slate-800 underline decoration-slate-300"
+                    >
+                      Skip Job
+                    </button>
+                  </div>
+                </div>
               )}
             </div>
           </Card>
