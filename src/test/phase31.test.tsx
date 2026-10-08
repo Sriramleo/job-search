@@ -268,6 +268,7 @@ describe('Phase 031 Frontend Hardening — ApplicationReadinessCard (No Fabricat
 describe('Phase 031 Campaign Controls — CampaignDashboard', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(campaignApi, 'getDailyReport').mockResolvedValue(null as any);
   });
 
   it('renders disabled-by-default standby state and conservative limits', async () => {

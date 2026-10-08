@@ -584,6 +584,9 @@ export interface CampaignConfig {
 export interface CampaignDailyQuota {
   date: string;
   dailyMaxApplications: number;
+  existingConfirmedToday?: number;
+  campaignSubmissionsAttempted?: number;
+  campaignSubmissionsConfirmed?: number;
   applicationsAttempted: number;
   applicationsSubmitted: number;
   applicationsConfirmed: number;
@@ -603,6 +606,9 @@ export interface CampaignDailyStatus {
   emergencyStop: boolean;
   dailyLimit: number;
   submittedToday: number;
+  existingConfirmedToday?: number;
+  campaignSubmissionsAttempted?: number;
+  campaignSubmissionsConfirmed?: number;
   applicationsAttempted?: number;
   outcomeUnknownCount?: number;
   lockedSlots?: number;
@@ -662,6 +668,9 @@ export interface DailyCampaignReport {
   skippedCount: number;
   blockedCount: number;
   manualReviewCount: number;
+  existingConfirmedToday?: number;
+  campaignSubmissionsAttempted?: number;
+  campaignSubmissionsConfirmed?: number;
   applicationsAttempted: number;
   applicationsPositivelyConfirmed: number;
   outcomeUnknownCount: number;

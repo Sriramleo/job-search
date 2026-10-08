@@ -337,7 +337,11 @@ export const CampaignDashboard: React.FC = () => {
           <span className="text-xl font-bold text-blue-600 mt-1 block">
             {status?.submittedToday ?? 0}
           </span>
-          <span className="text-[10px] text-slate-400">Confirmed applications</span>
+          <span className="text-[10px] text-slate-400">
+            {(status?.existingConfirmedToday ?? 0) > 0
+              ? `${status?.existingConfirmedToday} existing, ${status?.campaignSubmissionsConfirmed ?? 0} campaign`
+              : 'Confirmed applications'}
+          </span>
         </Card>
 
         <Card className="p-3 bg-white border border-[#E2E8F0]">
@@ -395,6 +399,34 @@ export const CampaignDashboard: React.FC = () => {
               >
                 Refresh Report
               </Button>
+            </div>
+          </div>
+
+          {/* Section 8 Daily Report Quota Accounting Breakdown */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 text-xs">
+            <div className="p-2.5 bg-blue-50/50 border border-blue-200 rounded-lg">
+              <span className="text-blue-600 block text-[10px] font-medium">Existing Confirmed Today</span>
+              <span className="font-bold text-blue-950 text-sm">{dailyReport.existingConfirmedToday ?? 0}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px] font-medium">Campaign Submissions Attempted</span>
+              <span className="font-bold text-slate-900 text-sm">{dailyReport.campaignSubmissionsAttempted ?? 0}</span>
+            </div>
+            <div className="p-2.5 bg-emerald-50/50 border border-emerald-200 rounded-lg">
+              <span className="text-emerald-700 block text-[10px] font-medium">Campaign Submissions Confirmed</span>
+              <span className="font-bold text-emerald-950 text-sm">{dailyReport.campaignSubmissionsConfirmed ?? 0}</span>
+            </div>
+            <div className="p-2.5 bg-purple-50/50 border border-purple-200 rounded-lg">
+              <span className="text-purple-700 block text-[10px] font-medium">Outcome Unknown / Locked</span>
+              <span className="font-bold text-purple-950 text-sm">{dailyReport.outcomeUnknownCount ?? 0}</span>
+            </div>
+            <div className="p-2.5 bg-amber-50/50 border border-amber-200 rounded-lg">
+              <span className="text-amber-700 block text-[10px] font-medium">Daily Quota Used</span>
+              <span className="font-bold text-amber-950 text-sm">{dailyReport.dailyQuotaUsed}</span>
+            </div>
+            <div className="p-2.5 bg-emerald-50/50 border border-emerald-200 rounded-lg">
+              <span className="text-emerald-700 block text-[10px] font-medium">Daily Quota Remaining</span>
+              <span className="font-bold text-emerald-950 text-sm">{dailyReport.dailyQuotaRemaining}</span>
             </div>
           </div>
 
