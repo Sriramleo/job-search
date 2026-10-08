@@ -15,6 +15,7 @@ import {
   ShieldCheck,
   Check,
   RotateCcw,
+  TrendingUp,
 } from 'lucide-react';
 import { applicationsApi, jobsApi, candidateApi, documentsApi } from '../api';
 import {
@@ -25,7 +26,9 @@ import {
   Document,
   AutomationState,
   ApplicationClaim,
+  ApplicationOutcomeDetail,
 } from '../types';
+import { OutcomeIntelligenceSection } from '../components/applications/OutcomeIntelligenceSection';
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Tabs } from '../components/ui/Tabs';
@@ -49,7 +52,8 @@ export const ApplicationWorkspace: React.FC = () => {
   const [candidateEvidence, setCandidateEvidence] = useState<CandidateEvidence[]>([]);
   const [documents, setDocuments] = useState<Document[]>([]);
   const [claims, setClaims] = useState<ApplicationClaim[]>([]);
-  const [activeTab, setActiveTab] = useState<'cv' | 'coverLetter' | 'answers' | 'referral' | 'recruiter' | 'claims'>('coverLetter');
+  const [activeTab, setActiveTab] = useState<'cv' | 'coverLetter' | 'answers' | 'referral' | 'recruiter' | 'claims' | 'outcome'>('coverLetter');
+  const [outcomeDetail, setOutcomeDetail] = useState<ApplicationOutcomeDetail | null>(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -143,6 +147,10 @@ export const ApplicationWorkspace: React.FC = () => {
           setCandidate(ws.candidate || null);
           setCandidateEvidence(ws.candidateEvidence || []);
           setDocuments(ws.documents || []);
+
+          if (app && app.id) {
+            fetchOutcome(app.id);
+          }
         }
       } catch (err) {
         console.error('Error initializing workspace:', err);
@@ -152,6 +160,17 @@ export const ApplicationWorkspace: React.FC = () => {
     };
     loadWorkspace();
   }, [appId, queryJobId]);
+
+  const fetchOutcome = async (targetAppId?: string) => {
+    const idToFetch = targetAppId || application?.id;
+    if (!idToFetch) return;
+    try {
+      const res = await applicationsApi.getApplicationOutcome(idToFetch);
+      setOutcomeDetail(res);
+    } catch (err) {
+      console.warn('Failed to fetch outcome details:', err);
+    }
+  };
 
   const handleAttestClaim = async (claimId: string) => {
     if (!application) return;
@@ -619,6 +638,7 @@ export const ApplicationWorkspace: React.FC = () => {
                   { id: 'referral', label: 'Referral Msg' },
                   { id: 'recruiter', label: 'Recruiter Msg' },
                   { id: 'claims', label: 'Claim Audit', count: claims.length, icon: <ShieldCheck className="w-3.5 h-3.5" /> },
+                  { id: 'outcome', label: 'Outcome Intelligence', icon: <TrendingUp className="w-3.5 h-3.5" /> },
                 ]}
                 activeTab={activeTab}
                 onChange={(t) => setActiveTab(t as any)}
@@ -919,6 +939,19 @@ export const ApplicationWorkspace: React.FC = () => {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* TAB 7: POST-APPLICATION OUTCOME INTELLIGENCE */}
+            {activeTab === 'outcome' && (
+              <div className="p-4">
+                {outcomeDetail ? (
+                  <OutcomeIntelligenceSection outcome={outcomeDetail} onRefresh={() => fetchOutcome()} />
+                ) : (
+                  <div className="p-6 text-center text-xs text-slate-500">
+                    Loading outcome intelligence for this application...
+                  </div>
+                )}
               </div>
             )}
           </div>

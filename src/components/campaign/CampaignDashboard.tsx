@@ -430,6 +430,38 @@ export const CampaignDashboard: React.FC = () => {
             </div>
           </div>
 
+          {/* Phase 033: Post-Application Outcome Intelligence Counters */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
+            <div className="p-2 bg-blue-50/50 border border-blue-200/80 rounded-lg">
+              <span className="text-blue-700 block text-[10px] font-medium">Employer Responses</span>
+              <span className="font-bold text-blue-950 text-sm">{dailyReport.employerResponsesCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-purple-50/50 border border-purple-200/80 rounded-lg">
+              <span className="text-purple-700 block text-[10px] font-medium">Interviews</span>
+              <span className="font-bold text-purple-950 text-sm">{dailyReport.interviewsCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-cyan-50/50 border border-cyan-200/80 rounded-lg">
+              <span className="text-cyan-700 block text-[10px] font-medium">Assessments</span>
+              <span className="font-bold text-cyan-950 text-sm">{dailyReport.assessmentsCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-rose-50/50 border border-rose-200/80 rounded-lg">
+              <span className="text-rose-700 block text-[10px] font-medium">Rejections</span>
+              <span className="font-bold text-rose-950 text-sm">{dailyReport.rejectionsCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-emerald-50/50 border border-emerald-200/80 rounded-lg">
+              <span className="text-emerald-700 block text-[10px] font-medium">Offers</span>
+              <span className="font-bold text-emerald-950 text-sm">{dailyReport.offersCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px] font-medium">Unmatched Emails</span>
+              <span className="font-bold text-slate-800 text-sm">{dailyReport.unmatchedMessagesCount ?? 0}</span>
+            </div>
+            <div className="p-2 bg-amber-50/50 border border-amber-200/80 rounded-lg">
+              <span className="text-amber-700 block text-[10px] font-medium">Needs Review</span>
+              <span className="font-bold text-amber-950 text-sm">{dailyReport.needsReviewCount ?? 0}</span>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
             <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
               <span className="text-slate-500 block text-[10px]">Total Discovered</span>

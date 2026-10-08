@@ -180,4 +180,13 @@ export const analyticsApi = {
       };
     }
   },
+
+  async getOutcomeAnalytics(): Promise<import('../types').OutcomeAnalyticsResponse | null> {
+    try {
+      return await apiClient.get<import('../types').OutcomeAnalyticsResponse>('/analytics/outcomes');
+    } catch (err) {
+      if (import.meta.env.PROD) throw err;
+      return null;
+    }
+  },
 };

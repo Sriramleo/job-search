@@ -25,6 +25,7 @@ export const Applications: React.FC = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'table' | 'campaign'>('kanban');
+  const [outcomeFilter, setOutcomeFilter] = useState<string>('ALL');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -46,6 +47,49 @@ export const Applications: React.FC = () => {
   const hasOutcomeUnknown = applications.some(
     (a) => a.automationState === 'Outcome Unknown' || a.automationState === 'OUTCOME_UNKNOWN'
   );
+
+  const filteredApplications = applications.filter((app) => {
+    if (outcomeFilter === 'ALL') return true;
+    if (outcomeFilter === 'INTERVIEW') {
+      return (
+        app.outcomeState === 'INTERVIEW_INVITATION' ||
+        app.outcomeState === 'INTERVIEW_SCHEDULED'
+      );
+    }
+    return app.outcomeState === outcomeFilter;
+  });
+
+  const getOutcomeBadgeClass = (state?: string) => {
+    switch (state) {
+      case 'OFFER':
+        return 'bg-emerald-100 text-emerald-800 border-emerald-300';
+      case 'INTERVIEW_SCHEDULED':
+      case 'INTERVIEW_INVITATION':
+        return 'bg-purple-100 text-purple-800 border-purple-300';
+      case 'ASSESSMENT':
+        return 'bg-cyan-100 text-cyan-800 border-cyan-300';
+      case 'APPLICATION_RECEIVED':
+        return 'bg-amber-100 text-amber-800 border-amber-300';
+      case 'RECRUITER_RESPONSE':
+        return 'bg-blue-100 text-blue-800 border-blue-300';
+      case 'REJECTION':
+        return 'bg-rose-100 text-rose-800 border-rose-300';
+      case 'NO_RESPONSE':
+      default:
+        return 'bg-slate-100 text-slate-700 border-slate-200';
+    }
+  };
+
+  const outcomeTabs = [
+    { id: 'ALL', label: 'All', count: applications.length },
+    { id: 'NO_RESPONSE', label: 'No Response', count: applications.filter((a) => !a.outcomeState || a.outcomeState === 'NO_RESPONSE').length },
+    { id: 'APPLICATION_RECEIVED', label: 'Confirmed', count: applications.filter((a) => a.outcomeState === 'APPLICATION_RECEIVED').length },
+    { id: 'RECRUITER_RESPONSE', label: 'Recruiter', count: applications.filter((a) => a.outcomeState === 'RECRUITER_RESPONSE').length },
+    { id: 'ASSESSMENT', label: 'Assessment', count: applications.filter((a) => a.outcomeState === 'ASSESSMENT').length },
+    { id: 'INTERVIEW', label: 'Interview', count: applications.filter((a) => a.outcomeState === 'INTERVIEW_INVITATION' || a.outcomeState === 'INTERVIEW_SCHEDULED').length },
+    { id: 'REJECTION', label: 'Rejected', count: applications.filter((a) => a.outcomeState === 'REJECTION').length },
+    { id: 'OFFER', label: 'Offer', count: applications.filter((a) => a.outcomeState === 'OFFER').length },
+  ];
 
   return (
     <div className="space-y-6">
@@ -123,17 +167,43 @@ export const Applications: React.FC = () => {
         </div>
       )}
 
+      {/* Outcome Intelligence Filter Bar */}
+      {viewMode !== 'campaign' && (
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
+          {outcomeTabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setOutcomeFilter(tab.id)}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                outcomeFilter === tab.id
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+              }`}
+            >
+              <span>{tab.label}</span>
+              <span
+                className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                  outcomeFilter === tab.id ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-500'
+                }`}
+              >
+                {tab.count}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Main View Area */}
       {viewMode === 'campaign' ? (
         <CampaignDashboard />
       ) : viewMode === 'kanban' ? (
-        <ApplicationKanban applications={applications} />
+        <ApplicationKanban applications={filteredApplications} />
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-          {applications.length === 0 ? (
+          {filteredApplications.length === 0 ? (
             <EmptyState
-              title="No applications yet"
-              description="Select a qualified job and click Prepare Application to begin preparing your application materials."
+              title="No applications match filter"
+              description="No applications currently match the selected outcome filter."
             />
           ) : (
             <table className="w-full text-left text-xs border-collapse">
@@ -141,59 +211,69 @@ export const Applications: React.FC = () => {
                 <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
                   <th className="py-3 px-4">Opportunity</th>
                   <th className="py-3 px-4">Stage</th>
-                <th className="py-3 px-4">Salary Range</th>
-                <th className="py-3 px-4">Route</th>
-                <th className="py-3 px-4">Automation State</th>
-                <th className="py-3 px-4">Next Action</th>
-                <th className="py-3 px-4 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {applications.map((app) => (
-                <tr
-                  key={app.id}
-                  onClick={() => navigate(`/applications/${app.id}`)}
-                  className="hover:bg-slate-50 cursor-pointer transition-colors"
-                >
-                  <td className="py-3.5 px-4">
-                    <span className="font-semibold text-sm text-[#0F172A] block leading-tight">
-                      {app.jobTitle}
-                    </span>
-                    <span className="text-[11px] text-[#64748B] font-medium">
-                      {app.companyName} · {app.location}
-                    </span>
-                  </td>
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <StatusBadge stage={app.stage} />
-                  </td>
-                  <td className="py-3.5 px-4 text-[#0F172A] font-medium tabular-nums">
-                    {app.salaryRange}
-                  </td>
-                  <td className="py-3.5 px-4 text-[#475569]">{app.route}</td>
-                  <td className="py-3.5 px-4 whitespace-nowrap">
-                    <AutomationBadge state={app.automationState} />
-                  </td>
-                  <td className="py-3.5 px-4 text-[#475569] max-w-xs">
-                    <span className="line-clamp-1">{app.nextAction}</span>
-                    <span className="text-[10px] text-slate-400 block">Due: {app.nextActionDueDate}</span>
-                  </td>
-                  <td className="py-3.5 px-4 text-right whitespace-nowrap">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigate(`/applications/${app.id}`);
-                      }}
-                    >
-                      Workspace
-                    </Button>
-                  </td>
+                  <th className="py-3 px-4">Employer Outcome</th>
+                  <th className="py-3 px-4">Salary Range</th>
+                  <th className="py-3 px-4">Route</th>
+                  <th className="py-3 px-4">Automation State</th>
+                  <th className="py-3 px-4">Next Action</th>
+                  <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {filteredApplications.map((app) => (
+                  <tr
+                    key={app.id}
+                    onClick={() => navigate(`/applications/${app.id}`)}
+                    className="hover:bg-slate-50 cursor-pointer transition-colors"
+                  >
+                    <td className="py-3.5 px-4">
+                      <span className="font-semibold text-sm text-[#0F172A] block leading-tight">
+                        {app.jobTitle}
+                      </span>
+                      <span className="text-[11px] text-[#64748B] font-medium">
+                        {app.companyName} · {app.location}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <StatusBadge stage={app.stage} />
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <span
+                        className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getOutcomeBadgeClass(
+                          app.outcomeState
+                        )}`}
+                      >
+                        {app.outcomeState || 'NO_RESPONSE'}
+                      </span>
+                    </td>
+                    <td className="py-3.5 px-4 text-[#0F172A] font-medium tabular-nums">
+                      {app.salaryRange}
+                    </td>
+                    <td className="py-3.5 px-4 text-[#475569]">{app.route}</td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <AutomationBadge state={app.automationState} />
+                    </td>
+                    <td className="py-3.5 px-4 text-[#475569] max-w-xs">
+                      <span className="line-clamp-1">{app.nextAction}</span>
+                      <span className="text-[10px] text-slate-400 block">Due: {app.nextActionDueDate}</span>
+                    </td>
+                    <td className="py-3.5 px-4 text-right whitespace-nowrap">
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/applications/${app.id}`);
+                        }}
+                      >
+                        Workspace
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
       </div>
     )}
   </div>

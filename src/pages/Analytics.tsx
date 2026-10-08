@@ -18,6 +18,7 @@ import { Card } from '../components/ui/Card';
 import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { LoadingSkeleton } from '../components/ui/FeedbackStates';
+import { OutcomeAnalyticsCard } from '../components/analytics/OutcomeAnalyticsCard';
 
 export const Analytics: React.FC = () => {
   const [windowFilter, setWindowFilter] = useState<'today' | '7d' | '30d' | '90d'>('30d');
@@ -85,6 +86,9 @@ export const Analytics: React.FC = () => {
           ))}
         </div>
       </div>
+
+      {/* Phase 033: Post-Application Outcome Intelligence */}
+      <OutcomeAnalyticsCard />
 
       {/* Funnel Progression Bar */}
       <Card

@@ -318,6 +318,14 @@ export interface Application {
   lastSubmissionError?: string;
   lastSubmissionErrorCode?: string;
   retryPolicy?: 'SAFE_TO_RETRY' | 'DO_NOT_AUTO_RETRY' | 'OUTCOME_UNKNOWN' | string;
+  outcomeState?: ApplicationOutcomeState;
+  rejectionReason?: RejectionReason | null;
+  firstResponseAt?: string | null;
+  latestResponseAt?: string | null;
+  outcomeConfidence?: string | null;
+  outcomeEvidence?: string | null;
+  timeline?: ApplicationTimelineEvent[];
+  responseTimeMetrics?: ResponseTimeMetrics;
 }
 
 export interface SubmissionResult {
@@ -677,6 +685,13 @@ export interface DailyCampaignReport {
   captchaMfaAuthBlocks: number;
   dailyQuotaUsed: number;
   dailyQuotaRemaining: number;
+  employerResponsesCount?: number;
+  rejectionsCount?: number;
+  interviewsCount?: number;
+  assessmentsCount?: number;
+  offersCount?: number;
+  unmatchedMessagesCount?: number;
+  needsReviewCount?: number;
   topEligibleCandidates: TopCandidateReport[];
   generatedAt: string;
 }
@@ -715,5 +730,127 @@ export interface CampaignRun {
   notes?: string;
   details?: Record<string, any>;
 }
+
+// ==========================================
+// Phase 033: Application Outcome Intelligence
+// ==========================================
+
+export type ApplicationOutcomeState =
+  | 'NO_RESPONSE'
+  | 'RECRUITER_RESPONSE'
+  | 'APPLICATION_RECEIVED'
+  | 'ASSESSMENT'
+  | 'INTERVIEW_INVITATION'
+  | 'INTERVIEW_SCHEDULED'
+  | 'REJECTION'
+  | 'OFFER'
+  | 'UNKNOWN';
+
+export type RejectionReason =
+  | 'GENERIC_COMPETITIVE_REJECTION'
+  | 'SPECIFIC_REQUIREMENT_REJECTION'
+  | 'UNKNOWN_REJECTION_REASON';
+
+export type TimelineEventType =
+  | 'SUBMISSION'
+  | 'CONFIRMATION'
+  | 'EMPLOYER_RESPONSE'
+  | 'ASSESSMENT'
+  | 'INTERVIEW'
+  | 'REJECTION'
+  | 'OFFER';
+
+export interface ApplicationTimelineEvent {
+  id: string;
+  applicationId: string;
+  eventType: TimelineEventType;
+  title: string;
+  description: string;
+  timestamp: string;
+  source: string;
+  sourceId?: string;
+  evidenceSnippet?: string;
+  metadata?: Record<string, any>;
+}
+
+export interface ResponseTimeMetrics {
+  submissionToFirstResponseHours?: number | null;
+  submissionToRejectionDays?: number | null;
+  submissionToInterviewDays?: number | null;
+  submissionToAssessmentDays?: number | null;
+  submissionToOfferDays?: number | null;
+}
+
+export interface ApplicationOutcomeDetail {
+  applicationId: string;
+  jobId: string;
+  companyName: string;
+  jobTitle: string;
+  submissionStatus: string;
+  outcomeState: ApplicationOutcomeState;
+  rejectionReason?: RejectionReason | null;
+  confidence: string;
+  firstResponseAt?: string | null;
+  latestResponseAt?: string | null;
+  latestMessageId?: string | null;
+  latestSubject?: string | null;
+  latestSender?: string | null;
+  evidenceSnippet?: string | null;
+  classifierVersion: string;
+  nextRecommendedAction?: string | null;
+  timeline: ApplicationTimelineEvent[];
+  responseTimeMetrics: ResponseTimeMetrics;
+}
+
+export interface FitBandMetrics {
+  band: string;
+  sampleCount: number;
+  applicationsCount: number;
+  noResponseCount: number;
+  recruiterResponseCount: number;
+  assessmentCount: number;
+  interviewCount: number;
+  rejectionCount: number;
+  offerCount: number;
+  interviewRate: number;
+  rejectionRate: number;
+}
+
+export interface DimensionOutcomeMetrics {
+  dimensionValue: string;
+  sampleCount: number;
+  applicationsCount: number;
+  interviewCount: number;
+  rejectionCount: number;
+  interviewRate: number;
+  rejectionRate: number;
+}
+
+export interface OutcomeAnalyticsResponse {
+  totalApplications: number;
+  totalSubmitted: number;
+  totalConfirmed: number;
+  outcomesSummary: Record<string, number>;
+  conversionRates: Record<string, number>;
+  fitBandAnalysis: FitBandMetrics[];
+  atsComparison: DimensionOutcomeMetrics[];
+  germanRequirementComparison: DimensionOutcomeMetrics[];
+  sourceComparison: DimensionOutcomeMetrics[];
+  averageResponseTimes: ResponseTimeMetrics;
+  medianResponseTimes: ResponseTimeMetrics;
+  disclaimer: string;
+  generatedAt: string;
+}
+
+export interface OutcomeSyncResult {
+  messagesScanned: number;
+  applicationsEvaluated: number;
+  applicationsUpdated: number;
+  matchedMessages: number;
+  unmatchedMessages: number;
+  needsReviewMessages: number;
+  syncedAt: string;
+}
+
 
 

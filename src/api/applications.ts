@@ -5,6 +5,7 @@ export interface ApplicationFilterParams {
   stage?: string;
   route?: string;
   automationState?: string;
+  outcomeState?: string;
   companyId?: string;
   jobId?: string;
   limit?: number;
@@ -145,5 +146,27 @@ export const applicationsApi = {
       null,
       { params: { reviewer, notes } }
     );
+  },
+
+  async getApplicationOutcome(id: string): Promise<import('../types').ApplicationOutcomeDetail | null> {
+    try {
+      return await apiClient.get<import('../types').ApplicationOutcomeDetail>(`/applications/${id}/outcome`);
+    } catch (err: any) {
+      if (err.status === 404) return null;
+      throw err;
+    }
+  },
+
+  async getApplicationTimeline(id: string): Promise<import('../types').ApplicationTimelineEvent[]> {
+    try {
+      return await apiClient.get<import('../types').ApplicationTimelineEvent[]>(`/applications/${id}/timeline`);
+    } catch (err: any) {
+      if (err.status === 404) return [];
+      throw err;
+    }
+  },
+
+  async syncOutcomes(): Promise<import('../types').OutcomeSyncResult> {
+    return await apiClient.post<import('../types').OutcomeSyncResult>('/applications/sync-outcomes');
   },
 };
