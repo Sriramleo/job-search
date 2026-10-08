@@ -111,6 +111,15 @@ export const JobTable: React.FC<JobTableProps> = ({
                           </span>
                         );
                       })()}
+                      {(() => {
+                        const ts = job.discoveredAt || (job as any).discovered_at || job.postedDate || (job as any).posted_date || '';
+                        if (!ts) return null;
+                        return (
+                          <div className="text-[10px] text-slate-400 font-normal">
+                            {ts.slice(0, 10)}
+                          </div>
+                        );
+                      })()}
                     </div>
                   </td>
 

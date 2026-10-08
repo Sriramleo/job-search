@@ -12,6 +12,24 @@ import { Pagination } from '../components/ui/Tabs';
 import { EmptyState, LoadingSkeleton } from '../components/ui/FeedbackStates';
 import { Button } from '../components/ui/Button';
 
+export function getJobTimestamp(job: any): string {
+  if (!job) return '';
+  const ts = (
+    job.discoveredAt ||
+    job.discovered_at ||
+    job.verifiedAt ||
+    job.verified_at ||
+    job.postedDate ||
+    job.posted_date ||
+    job.updatedAt ||
+    job.updated_at ||
+    job.createdAt ||
+    job.created_at ||
+    ''
+  );
+  return String(ts);
+}
+
 export const Jobs: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
@@ -24,7 +42,7 @@ export const Jobs: React.FC = () => {
   const [minSalaryFilter, setMinSalaryFilter] = useState<number>(Number(searchParams.get('salary')) || 0);
   const [germanFilter, setGermanFilter] = useState(searchParams.get('german') || 'all');
   const [relocationFilter, setRelocationFilter] = useState<string>(searchParams.get('relocation') || 'all');
-  const [sortField, setSortField] = useState<string>('salaryMin');
+  const [sortField, setSortField] = useState<string>('latest');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
   // Preview Drawer
@@ -45,15 +63,32 @@ export const Jobs: React.FC = () => {
         minSalary: minSalaryFilter,
         germanRequirement: germanFilter,
         relocationStatus: relocationFilter as any,
+        sortBy: sortField,
+        sortDirection: sortDirection,
       });
 
-      // Sort
+      // Client-side sort fallback ensuring strict newest-first default
       const sorted = [...data].sort((a, b) => {
+        if (sortField === 'latest' || sortField === 'discoveredAt' || sortField === 'postedDate') {
+          const tsA = getJobTimestamp(a);
+          const tsB = getJobTimestamp(b);
+          if (tsA && tsB) {
+            const cmp = tsB.localeCompare(tsA);
+            if (cmp !== 0) return sortDirection === 'asc' ? -cmp : cmp;
+          } else if (tsA && !tsB) {
+            return sortDirection === 'asc' ? 1 : -1;
+          } else if (!tsA && tsB) {
+            return sortDirection === 'asc' ? -1 : 1;
+          }
+          return sortDirection === 'asc'
+            ? String(a.id || '').localeCompare(String(b.id || ''))
+            : String(b.id || '').localeCompare(String(a.id || ''));
+        }
         if (sortField === 'salaryMin') {
-          return sortDirection === 'asc' ? a.salaryMin - b.salaryMin : b.salaryMin - a.salaryMin;
+          return sortDirection === 'asc' ? (a.salaryMin || 0) - (b.salaryMin || 0) : (b.salaryMin || 0) - (a.salaryMin || 0);
         }
         if (sortField === 'title') {
-          return sortDirection === 'asc' ? a.title.localeCompare(b.title) : b.title.localeCompare(a.title);
+          return sortDirection === 'asc' ? (a.title || '').localeCompare(b.title || '') : (b.title || '').localeCompare(a.title || '');
         }
         return 0;
       });
@@ -178,6 +213,47 @@ export const Jobs: React.FC = () => {
         />
       ) : (
         <div className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-lg border border-[#E2E8F0] text-xs">
+            <div className="flex items-center gap-2">
+              <span className="text-[#64748B] font-medium">Sorted by:</span>
+              <div className="inline-flex rounded-md shadow-xs bg-white border border-[#E2E8F0] p-0.5">
+                <button
+                  onClick={() => handleSort('latest')}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                    sortField === 'latest'
+                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Latest (Default) {sortField === 'latest' && (sortDirection === 'desc' ? '↓' : '↑')}
+                </button>
+                <button
+                  onClick={() => handleSort('salaryMin')}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                    sortField === 'salaryMin'
+                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Salary {sortField === 'salaryMin' && (sortDirection === 'desc' ? '↓' : '↑')}
+                </button>
+                <button
+                  onClick={() => handleSort('title')}
+                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
+                    sortField === 'title'
+                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  Role Title {sortField === 'title' && (sortDirection === 'desc' ? '↓' : '↑')}
+                </button>
+              </div>
+            </div>
+            <span className="text-slate-500 text-[11px] font-medium">
+              {jobs.length} opportunities loaded (Newest-first default)
+            </span>
+          </div>
+
           <JobTable
             jobs={paginatedJobs}
             selectedJobId={selectedPreviewJob?.id}

@@ -120,12 +120,19 @@ export const AutomationBadge: React.FC<{ state: AutomationState }> = ({ state })
     'Submission Failed': 'red',
     Submitted: 'green',
     'Needs Attention': 'red',
+    'Outcome Unknown': 'amber',
+    'OUTCOME_UNKNOWN': 'amber',
   };
 
+  const isUnknown = state === 'Outcome Unknown' || state === 'OUTCOME_UNKNOWN';
+
   return (
-    <Badge variant={map[state] || 'gray'}>
+    <Badge variant={map[state] || (isUnknown ? 'amber' : 'gray')}>
       {(state === 'Automation Running' || state === 'Submitting' || state === 'Filling') && (
         <span className="w-1.5 h-1.5 rounded-full bg-blue-600 animate-ping mr-1.5" />
+      )}
+      {isUnknown && (
+        <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5" />
       )}
       {state}
     </Badge>

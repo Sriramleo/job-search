@@ -23,6 +23,36 @@ import { Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { LoadingSkeleton, EmptyState } from '../components/ui/FeedbackStates';
 
+export function getCommunicationTimestamp(comm: any): string {
+  if (!comm) return '';
+  const ts = (
+    comm.receivedAt ||
+    comm.received_at ||
+    comm.timestamp ||
+    comm.date ||
+    comm.createdAt ||
+    comm.created_at ||
+    ''
+  );
+  return String(ts);
+}
+
+export function sortCommunicationsNewestFirst(comms: Communication[]): Communication[] {
+  return [...comms].sort((a, b) => {
+    const tsA = getCommunicationTimestamp(a);
+    const tsB = getCommunicationTimestamp(b);
+    if (tsA && tsB) {
+      const cmp = tsB.localeCompare(tsA);
+      if (cmp !== 0) return cmp;
+    } else if (tsA && !tsB) {
+      return -1;
+    } else if (!tsA && tsB) {
+      return 1;
+    }
+    return String(b.id || '').localeCompare(String(a.id || ''));
+  });
+}
+
 export const Inbox: React.FC = () => {
   const navigate = useNavigate();
   const [communications, setCommunications] = useState<Communication[]>([]);
@@ -34,11 +64,12 @@ export const Inbox: React.FC = () => {
   const fetchComms = async () => {
     try {
       const data = await communicationsApi.getCommunications();
-      setCommunications(data);
-      if (data.length > 0 && !selectedComm) {
-        setSelectedComm(data[0]);
-        if (data[0].suggestedResponse) {
-          setReplyText(data[0].suggestedResponse);
+      const sorted = sortCommunicationsNewestFirst(data);
+      setCommunications(sorted);
+      if (sorted.length > 0 && !selectedComm) {
+        setSelectedComm(sorted[0]);
+        if (sorted[0].suggestedResponse) {
+          setReplyText(sorted[0].suggestedResponse);
         }
       }
     } finally {
@@ -61,7 +92,8 @@ export const Inbox: React.FC = () => {
     }
   };
 
-  const filteredComms = communications.filter((c) => {
+  const sortedComms = sortCommunicationsNewestFirst(communications);
+  const filteredComms = sortedComms.filter((c) => {
     if (activeFolder === 'All') return true;
     return c.folder === activeFolder;
   });

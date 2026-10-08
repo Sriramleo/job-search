@@ -12,6 +12,8 @@ export interface JobFilterParams {
   relocationStatus?: EvidenceStatus | 'all';
   technicalFit?: FitLevel | 'all';
   status?: PipelineStage | 'all';
+  sortBy?: string;
+  sortDirection?: 'asc' | 'desc';
   limit?: number;
   offset?: number;
 }
@@ -27,6 +29,8 @@ export const jobsApi = {
       if (params.role) queryParams.role = params.role;
       if (params.seniority && params.seniority !== 'all') queryParams.seniority = params.seniority;
       if (params.workModel && params.workModel !== 'all') queryParams.workModel = params.workModel;
+      if (params.sortBy) queryParams.sortBy = params.sortBy;
+      if (params.sortDirection) queryParams.sortDirection = params.sortDirection;
       if (params.limit) queryParams.limit = params.limit;
       if (params.offset) queryParams.skip = params.offset;
     }

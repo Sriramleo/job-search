@@ -15,4 +15,5 @@ export * from './settings';
 export * from './automation';
 export * from './orchestration';
 export * from './health';
+export * from './campaign';
 

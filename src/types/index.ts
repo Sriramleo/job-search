@@ -60,7 +60,9 @@ export type AutomationState =
   | 'Submission Requires Human Action'
   | 'Submission Failed'
   | 'Submitted'
-  | 'Needs Attention';
+  | 'Needs Attention'
+  | 'Outcome Unknown'
+  | 'OUTCOME_UNKNOWN';
 
 
 export interface Candidate {
@@ -436,6 +438,9 @@ export interface Communication {
   linkedJobTitle?: string;
   linkedApplicationId?: string;
   date: string;
+  receivedAt?: string;
+  received_at?: string;
+  timestamp?: string;
   detectedType:
     | 'Recruiter Outreach'
     | 'HR Follow-up'
@@ -561,5 +566,68 @@ export interface PolicyDecisionResult {
   policyMode: string;
   evaluatedAt: string;
   realWorldJobIdentity: RealWorldJobIdentity;
+}
+
+export interface CampaignConfig {
+  dailyMaxApplications: number;
+  minFitScore: number;
+  minReadinessScore: number;
+  maxPerCompanyDaily: number;
+  maxPerAtsDaily: number;
+  cooldownSeconds: number;
+  isEnabled: boolean;
+  emergencyStop: boolean;
+}
+
+export interface CampaignDailyStatus {
+  date: string;
+  isEnabled: boolean;
+  emergencyStop: boolean;
+  dailyLimit: number;
+  submittedToday: number;
+  remainingCapacity: number;
+  minFitScore: number;
+  minReadinessScore: number;
+  companyLimit: number;
+  atsLimit: number;
+  config: CampaignConfig;
+}
+
+export interface CandidateEvaluationSummary {
+  jobId: string;
+  companyName: string;
+  roleTitle: string;
+  atsProvider: string;
+  fitScore: number;
+  readinessState: string;
+  decision: string;
+  eligible: boolean;
+  skipOrBlockReason?: string | null;
+}
+
+export interface CampaignQueueEvaluationResult {
+  evaluatedAt: string;
+  totalEvaluated: number;
+  eligibleCount: number;
+  blockedCount: number;
+  skippedCount: number;
+  candidates: CandidateEvaluationSummary[];
+}
+
+export interface CampaignRun {
+  id: string;
+  startedAt: string;
+  completedAt?: string | null;
+  status: 'running' | 'completed' | 'aborted' | 'stopped';
+  candidatesEvaluated: number;
+  candidatesEligible: number;
+  applicationsSubmitted: number;
+  successfulConfirmations: number;
+  blockedCount: number;
+  skippedCount: number;
+  failedCount: number;
+  unknownOutcomesCount: number;
+  summary?: string;
+  details?: Record<string, any>;
 }
 

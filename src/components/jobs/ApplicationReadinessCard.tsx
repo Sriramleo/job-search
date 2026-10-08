@@ -51,9 +51,40 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
     };
   }, [job.id]);
 
-  const score = fitScore?.overallScore ?? 83;
-  const state = readiness?.state ?? (job.verificationStatus === 'VERIFIED' ? 'AUTO_APPLY_READY' : 'BLOCKED');
-  const decision = policy?.decision ?? (state === 'AUTO_APPLY_READY' ? 'AUTO_APPLY' : 'BLOCKED');
+  // No fabricated fallbacks! Strictly real values or loading / not verified
+  const hasFit = fitScore?.overallScore !== undefined || (job as any).fitScore !== undefined;
+  const scoreVal = fitScore?.overallScore ?? (job as any).fitScore;
+  const fitDisplay = loading
+    ? 'Loading...'
+    : hasFit
+    ? `FIT ${scoreVal}%`
+    : 'Fit Score Unavailable';
+
+  const rawState = readiness?.state;
+  const stateDisplay = loading
+    ? 'LOADING'
+    : rawState
+    ? rawState.replace(/_/g, ' ')
+    : 'NOT VERIFIED';
+
+  const rawDecision = policy?.decision;
+  const decisionDisplay = loading
+    ? 'Loading...'
+    : rawDecision
+    ? rawDecision.replace(/_/g, ' ')
+    : 'Pending Evaluation';
+
+  const realAtsProvider = (
+    job.atsType ||
+    (job as any).atsProvider ||
+    (job as any).ats_provider ||
+    job.applicationType ||
+    null
+  );
+
+  const applyKitCond = readiness?.conditions?.find(
+    (c) => c.name === 'Apply Kit Grounding' || c.name === 'Required Documents (CV)'
+  );
 
   const stateColors: Record<string, { bg: string; text: string; border: string }> = {
     AUTO_APPLY_READY: { bg: 'bg-emerald-50', text: 'text-emerald-800', border: 'border-emerald-200' },
@@ -63,7 +94,11 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
     ALREADY_APPLIED: { bg: 'bg-purple-50', text: 'text-purple-800', border: 'border-purple-200' },
   };
 
-  const currentStyle = stateColors[state] || stateColors.BLOCKED;
+  const currentStyle = rawState && stateColors[rawState] ? stateColors[rawState] : {
+    bg: 'bg-slate-50',
+    text: 'text-slate-700',
+    border: 'border-slate-200',
+  };
 
   return (
     <Card className="p-6 border border-[#E2E8F0] shadow-sm space-y-6">
@@ -71,12 +106,12 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
         <div>
           <div className="flex items-center gap-2">
             <span className="text-2xl font-black text-[#0F172A] tracking-tight">
-              FIT {score}%
+              {fitDisplay}
             </span>
             <span
               className={`px-2.5 py-1 text-xs font-bold uppercase rounded-full border ${currentStyle.bg} ${currentStyle.text} ${currentStyle.border}`}
             >
-              {state.replace(/_/g, ' ')}
+              {stateDisplay}
             </span>
           </div>
           <p className="text-xs text-[#64748B] mt-1">
@@ -89,7 +124,7 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
             Policy Decision
           </span>
           <span className="text-sm font-bold text-[#0F172A]">
-            {decision.replace(/_/g, ' ')}
+            {decisionDisplay}
           </span>
         </div>
       </div>
@@ -99,7 +134,9 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
         <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-1">
           <span className="text-[11px] font-medium text-[#64748B] block">Freshness</span>
           <div className="flex items-center gap-1.5 text-xs font-semibold">
-            {job.verificationStatus === 'VERIFIED' ? (
+            {loading ? (
+              <span className="text-slate-500">Loading...</span>
+            ) : job.verificationStatus === 'VERIFIED' ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="text-emerald-700">VERIFIED</span>
@@ -107,7 +144,7 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
             ) : (
               <>
                 <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                <span className="text-rose-700">{job.verificationStatus || 'UNKNOWN'}</span>
+                <span className="text-rose-700">{job.verificationStatus || 'Not verified'}</span>
               </>
             )}
           </div>
@@ -117,32 +154,57 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
           <span className="text-[11px] font-medium text-[#64748B] block">ATS Provider</span>
           <div className="flex items-center gap-1.5 text-xs font-semibold text-[#0F172A]">
             <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0" />
-            <span>{job.applicationType || 'Greenhouse'}</span>
+            <span>
+              {loading
+                ? 'Loading...'
+                : realAtsProvider
+                ? realAtsProvider
+                : 'Not verified / Unavailable'}
+            </span>
           </div>
         </div>
 
         <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-1">
           <span className="text-[11px] font-medium text-[#64748B] block">Duplicate Check</span>
           <div className="flex items-center gap-1.5 text-xs font-semibold">
-            {state === 'ALREADY_APPLIED' ? (
+            {loading ? (
+              <span className="text-slate-500">Checking...</span>
+            ) : rawState === 'ALREADY_APPLIED' ? (
               <>
                 <AlertCircle className="w-4 h-4 text-purple-600 shrink-0" />
                 <span className="text-purple-700">ALREADY APPLIED</span>
               </>
-            ) : (
+            ) : readiness ? (
               <>
                 <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
                 <span className="text-emerald-700">CLEAR</span>
               </>
+            ) : (
+              <span className="text-slate-500">Not verified</span>
             )}
           </div>
         </div>
 
         <div className="p-3 bg-[#F8FAFC] rounded-lg border border-[#E2E8F0] space-y-1">
           <span className="text-[11px] font-medium text-[#64748B] block">Apply Kit</span>
-          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700">
-            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>CV & Cover Letter READY</span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold">
+            {loading ? (
+              <span className="text-slate-500">Loading...</span>
+            ) : applyKitCond ? (
+              applyKitCond.passed ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+                  <span className="text-emerald-700">CV & Cover Letter READY</span>
+                </>
+              ) : (
+                <>
+                  <XCircle className="w-4 h-4 text-rose-600 shrink-0" />
+                  <span className="text-rose-700">Apply Kit Incomplete</span>
+                </>
+              )
+            ) : (
+              <span className="text-slate-500">Not verified / Unavailable</span>
+            )}
           </div>
         </div>
       </div>

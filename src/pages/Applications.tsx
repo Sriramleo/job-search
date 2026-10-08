@@ -17,12 +17,14 @@ import { Tabs } from '../components/ui/Tabs';
 import { StatusBadge, AutomationBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { ApplicationKanban } from '../components/applications/ApplicationKanban';
+import { CampaignDashboard } from '../components/campaign/CampaignDashboard';
 import { LoadingSkeleton, EmptyState } from '../components/ui/FeedbackStates';
+import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export const Applications: React.FC = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
-  const [viewMode, setViewMode] = useState<'kanban' | 'table'>('kanban');
+  const [viewMode, setViewMode] = useState<'kanban' | 'table' | 'campaign'>('kanban');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -40,6 +42,10 @@ export const Applications: React.FC = () => {
   if (isLoading) {
     return <LoadingSkeleton lines={8} />;
   }
+
+  const hasOutcomeUnknown = applications.some(
+    (a) => a.automationState === 'Outcome Unknown' || a.automationState === 'OUTCOME_UNKNOWN'
+  );
 
   return (
     <div className="space-y-6">
@@ -72,6 +78,17 @@ export const Applications: React.FC = () => {
                 <TableIcon className="w-3.5 h-3.5" />
                 <span>Table</span>
               </button>
+              <button
+                onClick={() => setViewMode('campaign')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                  viewMode === 'campaign'
+                    ? 'bg-white text-[#0F172A] shadow-xs'
+                    : 'text-[#64748B] hover:text-[#0F172A]'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>Daily Campaign</span>
+              </button>
             </div>
 
             <Button
@@ -88,8 +105,28 @@ export const Applications: React.FC = () => {
         }
       />
 
+      {/* Prominent Warning for Outcome Unknown */}
+      {hasOutcomeUnknown && (
+        <div className="p-4 bg-amber-50 border border-amber-300 rounded-xl flex items-center justify-between text-amber-900 shadow-xs">
+          <div className="flex items-center gap-3">
+            <AlertTriangle className="w-5 h-5 text-amber-600 shrink-0" />
+            <div>
+              <span className="font-bold text-xs block">AMBIGUOUS SUBMISSION OUTCOME REGISTERED</span>
+              <span className="text-xs text-amber-800">
+                One or more applications has an unverified submission outcome. Automatic retries are strictly blocked. Requires human inspection and reconciliation.
+              </span>
+            </div>
+          </div>
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-200 text-amber-900 font-bold">
+            ZERO RETRY ENFORCED
+          </span>
+        </div>
+      )}
+
       {/* Main View Area */}
-      {viewMode === 'kanban' ? (
+      {viewMode === 'campaign' ? (
+        <CampaignDashboard />
+      ) : viewMode === 'kanban' ? (
         <ApplicationKanban applications={applications} />
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xs overflow-hidden">
