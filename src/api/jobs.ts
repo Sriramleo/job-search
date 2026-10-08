@@ -53,5 +53,22 @@ export const jobsApi = {
   async verifyFreshness(id: string): Promise<Job> {
     return await apiClient.post<Job>(`/jobs/${id}/verify-freshness`);
   },
+
+  async getFitScore(id: string) {
+    return await apiClient.get<import('../types').FitScoreResult>(`/qualification/jobs/${id}/fit-score`);
+  },
+
+  async getApplicationReadiness(id: string) {
+    return await apiClient.get<import('../types').ApplicationReadinessResult>(`/qualification/jobs/${id}/readiness`);
+  },
+
+  async getPolicyDecision(id: string) {
+    return await apiClient.get<import('../types').PolicyDecisionResult>(`/qualification/jobs/${id}/policy`);
+  },
+
+  async checkDuplicate(jobData: Record<string, any>) {
+    return await apiClient.post<import('../types').DuplicateCheckResult>('/qualification/identity/check-duplicate', jobData);
+  },
 };
+
 

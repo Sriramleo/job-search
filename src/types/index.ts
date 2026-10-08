@@ -469,3 +469,97 @@ export interface AIUsage {
   tokensOrUnits: number;
   costEstimateEur: number;
 }
+
+// ==========================================
+// Phase 028 — Controlled Real Auto-Apply Pilot Types
+// ==========================================
+
+export interface RealWorldJobIdentity {
+  providerJobId?: string | null;
+  canonicalApplicationUrl: string;
+  canonicalJobUrl: string;
+  normalizedCompany: string;
+  normalizedRole: string;
+  providerOrAts: string;
+  sourceAppearances: string[];
+  identityHash: string;
+}
+
+export interface DuplicateCheckResult {
+  isDuplicate: boolean;
+  duplicateType?: string | null;
+  matchedJobId?: string | null;
+  matchedApplicationId?: string | null;
+  existingStage?: string | null;
+  reason: string;
+}
+
+export interface FitScoreComponent {
+  name: string;
+  weight: number;
+  score: number;
+  normalizedContribution: number;
+  matchedRequirements: string[];
+  partialMatches: string[];
+  gaps: string[];
+  notVerifiedItems: string[];
+  candidateEvidenceRefs: string[];
+  jobRequirementRefs: string[];
+  explanation: string;
+}
+
+export interface FitScoreResult {
+  overallScore: number;
+  components: FitScoreComponent[];
+  requirementsMatrix: Record<string, any>;
+  strongestMatches: string[];
+  gaps: string[];
+  notVerifiedEvidence: string[];
+  whyFits: string;
+  whyNotApply: string;
+  salaryDisplay: string;
+  germanDisplay: string;
+}
+
+export interface ReadinessCondition {
+  name: string;
+  passed: boolean;
+  detail: string;
+  isHardBlocker: boolean;
+}
+
+export type ReadinessState =
+  | 'AUTO_APPLY_READY'
+  | 'HUMAN_APPROVAL_REQUIRED'
+  | 'MANUAL_REQUIRED'
+  | 'BLOCKED'
+  | 'ALREADY_APPLIED';
+
+export interface ApplicationReadinessResult {
+  state: ReadinessState;
+  readinessScore: number;
+  conditions: ReadinessCondition[];
+  blockers: string[];
+  warnings: string[];
+  summary: string;
+}
+
+export type PolicyDecisionType =
+  | 'AUTO_APPLY'
+  | 'HUMAN_APPROVAL_REQUIRED'
+  | 'MANUAL_REQUIRED'
+  | 'BLOCKED'
+  | 'ALREADY_APPLIED';
+
+export interface PolicyDecisionResult {
+  decision: PolicyDecisionType;
+  fitScore: FitScoreResult;
+  readinessState: ApplicationReadinessResult;
+  blockers: string[];
+  warnings: string[];
+  evidenceReferences: string[];
+  policyMode: string;
+  evaluatedAt: string;
+  realWorldJobIdentity: RealWorldJobIdentity;
+}
+
