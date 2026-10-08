@@ -186,6 +186,15 @@ export const ApplicationReadinessCard: React.FC<Props> = ({ job }) => {
           </div>
         </div>
       )}
+
+      {/* Safety & Positive Confirmation Invariant Guarantee */}
+      <div className="p-2.5 bg-slate-50 border border-slate-200 rounded text-[11px] text-[#64748B] flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>Verified Execution: Positive employer ATS confirmation required before marking Applied.</span>
+        </div>
+        <span className="text-[10px] font-mono text-slate-400">Phase 029/030 Gate</span>
+      </div>
     </Card>
   );
 };
