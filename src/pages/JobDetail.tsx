@@ -26,6 +26,7 @@ import { FitBadge, EvidenceBadge, Badge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { getSourceAttribution, getApplicationRouteAttribution } from '../utils/jobSource';
 import { LoadingSkeleton, ErrorState } from '../components/ui/FeedbackStates';
+import { ApplicationReadinessCard } from '../components/jobs/ApplicationReadinessCard';
 
 export const JobDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -261,6 +262,9 @@ export const JobDetail: React.FC = () => {
           <span className="text-[11px] text-[#64748B] mt-1 block">Materials ready to review</span>
         </div>
       </div>
+
+      {/* PHASE 028: FIT SCORE & APPLICATION READINESS */}
+      <ApplicationReadinessCard job={job} />
 
       {/* TWO-COLUMN DETAIL VIEW */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
