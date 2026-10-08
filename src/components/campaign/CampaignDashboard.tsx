@@ -16,13 +16,17 @@ import {
   History,
   FileCheck,
   Building,
+  FileText,
+  Lock,
 } from 'lucide-react';
 import { campaignApi } from '../../api';
 import {
   CampaignConfig,
+  CampaignCycleExecutionResult,
   CampaignDailyStatus,
   CampaignQueueEvaluationResult,
   CampaignRun,
+  DailyCampaignReport,
 } from '../../types';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
@@ -34,24 +38,31 @@ export const CampaignDashboard: React.FC = () => {
   const [config, setConfig] = useState<CampaignConfig | null>(null);
   const [evaluation, setEvaluation] = useState<CampaignQueueEvaluationResult | null>(null);
   const [runs, setRuns] = useState<CampaignRun[]>([]);
+  const [dailyReport, setDailyReport] = useState<DailyCampaignReport | null>(null);
+  const [cycleResult, setCycleResult] = useState<CampaignCycleExecutionResult | null>(null);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isEvaluating, setIsEvaluating] = useState(false);
+  const [isRunningCycle, setIsRunningCycle] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showConfigModal, setShowConfigModal] = useState(false);
+  const [showArmModal, setShowArmModal] = useState(false);
+  const [showReportModal, setShowReportModal] = useState(false);
 
   // Edit config state
-  const [editLimit, setEditLimit] = useState(5);
+  const [editLimit, setEditLimit] = useState(1);
   const [editFit, setEditFit] = useState(85);
   const [editReady, setEditReady] = useState(90);
   const [editCompanyLimit, setEditCompanyLimit] = useState(1);
-  const [editAtsLimit, setEditAtsLimit] = useState(2);
+  const [editAtsLimit, setEditAtsLimit] = useState(1);
 
   const loadData = async () => {
     setIsLoading(true);
     try {
-      const [statusRes, runsRes] = await Promise.allSettled([
+      const [statusRes, runsRes, reportRes] = await Promise.allSettled([
         campaignApi.getStatus(),
         campaignApi.getRuns(10),
+        campaignApi.getDailyReport(),
       ]);
       if (statusRes.status === 'fulfilled') {
         setStatus(statusRes.value);
@@ -65,6 +76,9 @@ export const CampaignDashboard: React.FC = () => {
       if (runsRes.status === 'fulfilled') {
         setRuns(runsRes.value);
       }
+      if (reportRes.status === 'fulfilled') {
+        setDailyReport(reportRes.value);
+      }
     } catch (err) {
       console.error('Failed to load campaign data:', err);
     } finally {
@@ -76,19 +90,41 @@ export const CampaignDashboard: React.FC = () => {
     loadData();
   }, []);
 
-  const handleToggleCampaign = async () => {
-    if (!config) return;
-    setIsUpdating(true);
+  const handleRunDryRun = async () => {
+    setIsRunningCycle(true);
     try {
-      const updated = await campaignApi.updateConfig({
-        ...config,
-        isEnabled: !config.isEnabled,
-        emergencyStop: false, // Disabling or enabling clears emergency stop if user deliberately initiates
-      });
-      setConfig(updated);
+      const res = await campaignApi.runCycle(true);
+      setCycleResult(res);
       await loadData();
     } catch (err) {
-      console.error('Failed to update campaign state:', err);
+      console.error('Failed to run dry-run cycle:', err);
+    } finally {
+      setIsRunningCycle(false);
+    }
+  };
+
+  const handleArmStage1 = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await campaignApi.armStage1();
+      setConfig(res);
+      setShowArmModal(false);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to arm Stage 1 campaign:', err);
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handlePauseCampaign = async () => {
+    setIsUpdating(true);
+    try {
+      const res = await campaignApi.setStage0DryRun();
+      setConfig(res);
+      await loadData();
+    } catch (err) {
+      console.error('Failed to pause campaign:', err);
     } finally {
       setIsUpdating(false);
     }
@@ -147,7 +183,8 @@ export const CampaignDashboard: React.FC = () => {
   }
 
   const isEmergencyStop = config?.emergencyStop;
-  const isEnabled = config?.isEnabled && !isEmergencyStop;
+  const isArmed = config?.isEnabled && !isEmergencyStop && config?.stage === 'STAGE_1_SINGLE_DAILY';
+  const currentStage = config?.stage || 'STAGE_0_DRY_RUN';
 
   return (
     <div className="space-y-6">
@@ -166,20 +203,25 @@ export const CampaignDashboard: React.FC = () => {
           <Button
             variant="secondary"
             size="sm"
-            onClick={handleToggleCampaign}
+            onClick={handlePauseCampaign}
             disabled={isUpdating}
           >
-            Reset Stop & Re-arm
+            Reset Stop to Stage 0
           </Button>
         </div>
-      ) : isEnabled ? (
+      ) : isArmed ? (
         <div className="p-4 bg-emerald-50 border border-emerald-300 rounded-xl flex items-center justify-between text-emerald-900 shadow-xs">
           <div className="flex items-center gap-3">
             <ShieldCheck className="w-6 h-6 text-emerald-600 shrink-0" />
             <div>
-              <span className="font-bold text-sm block">CAMPAIGN ACTIVE & ARMED</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm">STAGE 1: 1-PER-DAY CAMPAIGN ARMED</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-emerald-200 text-emerald-800">
+                  {currentStage}
+                </span>
+              </div>
               <span className="text-xs text-emerald-700">
-                Daily autonomous pilot running under strict deterministic safety limits ({status?.remainingCapacity || 0} remaining today).
+                Strict single daily application limit. Remaining quota: {status?.remainingCapacity ?? 0}.
               </span>
             </div>
           </div>
@@ -187,7 +229,16 @@ export const CampaignDashboard: React.FC = () => {
             <Button
               variant="secondary"
               size="sm"
-              onClick={handleToggleCampaign}
+              onClick={handleRunDryRun}
+              disabled={isRunningCycle || isUpdating}
+              icon={<RefreshCw className={`w-3.5 h-3.5 ${isRunningCycle ? 'animate-spin' : ''}`} />}
+            >
+              Run Dry Run
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={handlePauseCampaign}
               disabled={isUpdating}
               icon={<Pause className="w-3.5 h-3.5" />}
             >
@@ -209,32 +260,65 @@ export const CampaignDashboard: React.FC = () => {
           <div className="flex items-center gap-3">
             <Shield className="w-6 h-6 text-slate-500 shrink-0" />
             <div>
-              <span className="font-bold text-sm block">CAMPAIGN STANDBY (DISABLED)</span>
+              <div className="flex items-center gap-2">
+                <span className="font-bold text-sm block">CAMPAIGN STANDBY (DISABLED) — STAGE 0 DRY-RUN</span>
+                <span className="text-[10px] px-2 py-0.5 rounded font-mono font-bold bg-slate-200 text-slate-800">
+                  {currentStage}
+                </span>
+              </div>
               <span className="text-xs text-[#64748B]">
-                Autonomous applications disabled by default. Manual and controlled single applications only.
+                Autonomous applications disabled. Queue evaluation and dry-runs only (zero real submissions).
               </span>
             </div>
+
           </div>
           <div className="flex items-center gap-2">
             <Button
+              variant="secondary"
+              size="sm"
+              onClick={handleRunDryRun}
+              disabled={isRunningCycle || isUpdating}
+              icon={<RefreshCw className={`w-3.5 h-3.5 ${isRunningCycle ? 'animate-spin' : ''}`} />}
+            >
+              {isRunningCycle ? 'Executing Dry Run...' : 'Run Dry Run'}
+            </Button>
+            <Button
               variant="primary"
               size="sm"
-              onClick={handleToggleCampaign}
+              onClick={() => setShowArmModal(true)}
               disabled={isUpdating}
               icon={<Play className="w-3.5 h-3.5" />}
             >
-              Enable Campaign
+              Arm 1-per-day Campaign
             </Button>
             <Button
               variant="secondary"
               size="sm"
               onClick={handleEmergencyStop}
               disabled={isUpdating}
-              icon={<ShieldAlert className="w-3.5 h-3.5" />}
+              icon={<ShieldAlert className="w-3.5 h-3.5 text-rose-600" />}
             >
-              Lockdown Stop
+              Emergency Stop
             </Button>
           </div>
+        </div>
+      )}
+
+      {/* Cycle Execution Banner if recently run */}
+      {cycleResult && (
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-xl flex items-center justify-between text-blue-900 text-xs">
+          <div className="flex items-center gap-2">
+            <Activity className="w-4 h-4 text-blue-600 shrink-0" />
+            <div>
+              <span className="font-bold uppercase tracking-wider text-[11px] block">
+                Cycle Result: {cycleResult.status} ({cycleResult.dryRun ? 'Dry Run' : 'Active'})
+              </span>
+              <span>{cycleResult.message}</span>
+            </div>
+          </div>
+          <span className="text-[10px] text-blue-600 font-mono">
+            Run: {cycleResult.runId}
+          </span>
         </div>
       )}
 
@@ -243,7 +327,7 @@ export const CampaignDashboard: React.FC = () => {
         <Card className="p-3 bg-white border border-[#E2E8F0]">
           <span className="text-[11px] font-medium text-[#64748B] block">Today's Cap</span>
           <span className="text-xl font-bold text-[#0F172A] mt-1 block">
-            {config?.dailyMaxApplications ?? 5}
+            {config?.dailyMaxApplications ?? 1}
           </span>
           <span className="text-[10px] text-slate-400">Max applications/day</span>
         </Card>
@@ -253,7 +337,7 @@ export const CampaignDashboard: React.FC = () => {
           <span className="text-xl font-bold text-blue-600 mt-1 block">
             {status?.submittedToday ?? 0}
           </span>
-          <span className="text-[10px] text-slate-400">Verified real apps</span>
+          <span className="text-[10px] text-slate-400">Confirmed applications</span>
         </Card>
 
         <Card className="p-3 bg-white border border-[#E2E8F0]">
@@ -261,7 +345,15 @@ export const CampaignDashboard: React.FC = () => {
           <span className="text-xl font-bold text-emerald-600 mt-1 block">
             {status?.remainingCapacity ?? 0}
           </span>
-          <span className="text-[10px] text-slate-400">Daily capacity left</span>
+          <span className="text-[10px] text-slate-400">Available slots</span>
+        </Card>
+
+        <Card className="p-3 bg-white border border-[#E2E8F0]">
+          <span className="text-[11px] font-medium text-[#64748B] block">Locked Slots</span>
+          <span className="text-xl font-bold text-amber-600 mt-1 block">
+            {status?.lockedSlots ?? 0}
+          </span>
+          <span className="text-[10px] text-slate-400">Unknown/unverified slots</span>
         </Card>
 
         <Card className="p-3 bg-white border border-[#E2E8F0]">
@@ -269,31 +361,147 @@ export const CampaignDashboard: React.FC = () => {
           <span className="text-xl font-bold text-[#0F172A] mt-1 block">
             {config?.minFitScore ?? 85}%
           </span>
-          <span className="text-[10px] text-slate-400">Hard qualification floor</span>
+          <span className="text-[10px] text-slate-400">Qualification floor</span>
         </Card>
 
         <Card className="p-3 bg-white border border-[#E2E8F0]">
-          <span className="text-[11px] font-medium text-[#64748B] block">Per-Company Cap</span>
+          <span className="text-[11px] font-medium text-[#64748B] block">Min Readiness</span>
           <span className="text-xl font-bold text-[#0F172A] mt-1 block">
-            {config?.maxPerCompanyDaily ?? 1}
+            {config?.minReadinessScore ?? 90}%
           </span>
-          <span className="text-[10px] text-slate-400">Max/employer daily</span>
-        </Card>
-
-        <Card className="p-3 bg-white border border-[#E2E8F0]">
-          <span className="text-[11px] font-medium text-[#64748B] block">Per-ATS Cap</span>
-          <span className="text-xl font-bold text-[#0F172A] mt-1 block">
-            {config?.maxPerAtsDaily ?? 2}
-          </span>
-          <span className="text-[10px] text-slate-400">Max/provider daily</span>
+          <span className="text-[10px] text-slate-400">Profile completeness</span>
         </Card>
       </div>
+
+      {/* Section 10 Daily Campaign Report Summary */}
+      {dailyReport && (
+        <Card className="p-5 border border-[#E2E8F0] space-y-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <h3 className="text-sm font-bold text-[#0F172A]">Daily Campaign Report ({dailyReport.date})</h3>
+              </div>
+              <p className="text-xs text-[#64748B]">
+                Production summary of candidate discovery, safety gating, and daily quota accounting.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={loadData}
+                icon={<RefreshCw className="w-3 h-3" />}
+              >
+                Refresh Report
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2 text-xs">
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Total Discovered</span>
+              <span className="font-bold text-slate-900 text-sm">{dailyReport.discoveryCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Qualified Postings</span>
+              <span className="font-bold text-slate-900 text-sm">{dailyReport.qualifiedCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Fresh Verified</span>
+              <span className="font-bold text-emerald-700 text-sm">{dailyReport.freshVerifiedCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Eligible Auto-Apply</span>
+              <span className="font-bold text-blue-700 text-sm">{dailyReport.eligibleAutoApplyCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Hard Blocked</span>
+              <span className="font-bold text-rose-700 text-sm">{dailyReport.blockedCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Skipped (Quota)</span>
+              <span className="font-bold text-amber-700 text-sm">{dailyReport.skippedCount}</span>
+            </div>
+            <div className="p-2.5 bg-slate-50 border border-slate-200 rounded-lg">
+              <span className="text-slate-500 block text-[10px]">Locked / Ambiguous</span>
+              <span className="font-bold text-purple-700 text-sm">{dailyReport.outcomeUnknownCount}</span>
+            </div>
+          </div>
+
+          {/* Top Eligible Candidates Table from Report */}
+          {dailyReport.topEligibleCandidates.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-[#0F172A]">Top Candidate Queue (Prioritized Newest-First)</h4>
+              <div className="border border-[#E2E8F0] rounded-lg overflow-x-auto">
+                <table className="w-full text-left text-xs border-collapse">
+                  <thead>
+                    <tr className="bg-slate-50/80 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
+                      <th className="py-2.5 px-3">Role & Company</th>
+                      <th className="py-2.5 px-3">ATS</th>
+                      <th className="py-2.5 px-3">Fit %</th>
+                      <th className="py-2.5 px-3">Readiness</th>
+                      <th className="py-2.5 px-3">Policy</th>
+                      <th className="py-2.5 px-3">Freshness</th>
+                      <th className="py-2.5 px-3">Duplicate</th>
+                      <th className="py-2.5 px-3">Eligibility</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {dailyReport.topEligibleCandidates.map((c) => (
+                      <tr key={c.jobId} className="hover:bg-slate-50/50">
+                        <td className="py-2.5 px-3">
+                          <div className="font-semibold text-[#0F172A]">{c.roleTitle}</div>
+                          <div className="text-[11px] text-[#64748B]">{c.companyName}</div>
+                        </td>
+                        <td className="py-2.5 px-3 font-mono uppercase text-[11px] text-[#475569]">
+                          {c.atsProvider}
+                        </td>
+                        <td className="py-2.5 px-3 font-bold text-[#0F172A]">{c.fitScore}%</td>
+                        <td className="py-2.5 px-3">
+                          <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-700 font-mono">
+                            {c.readinessState}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 font-mono text-[10px]">{c.policyDecision}</td>
+                        <td className="py-2.5 px-3">
+                          <span className={`text-[10px] px-1.5 py-0.5 rounded font-mono ${
+                            c.freshnessStatus === 'VERIFIED' ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-700'
+                          }`}>
+                            {c.freshnessStatus}
+                          </span>
+                        </td>
+                        <td className="py-2.5 px-3 text-[10px] font-mono text-slate-600">
+                          {c.duplicateStatus}
+                        </td>
+                        <td className="py-2.5 px-3">
+                          {c.eligible ? (
+                            <span className="inline-flex items-center gap-1 text-emerald-700 font-bold text-[11px]">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>ELIGIBLE</span>
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-rose-700 font-semibold text-[11px]">
+                              <XCircle className="w-3.5 h-3.5" />
+                              <span>INELIGIBLE</span>
+                            </span>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </Card>
+      )}
 
       {/* Queue Evaluation & Controls Bar */}
       <Card className="p-5 border border-[#E2E8F0] space-y-4">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h3 className="text-sm font-bold text-[#0F172A]">Candidate Queue & Safety Gates</h3>
+            <h3 className="text-sm font-bold text-[#0F172A]">Candidate Queue Evaluation</h3>
             <p className="text-xs text-[#64748B]">
               Deterministic 9-gate dry-run evaluation. Analyzes fresh postings without performing submissions.
             </p>
@@ -455,20 +663,26 @@ export const CampaignDashboard: React.FC = () => {
                     </td>
                     <td className="py-2.5 px-3 font-mono uppercase text-[11px]">
                       <span className={`px-1.5 py-0.5 rounded ${
-                        r.status === 'completed'
+                        r.status === 'COMPLETED' || r.status === 'completed'
                           ? 'bg-emerald-100 text-emerald-800'
-                          : r.status === 'aborted'
+                          : r.status === 'DRY_RUN'
+                          ? 'bg-blue-100 text-blue-800'
+                          : r.status === 'EMERGENCY_STOPPED'
                           ? 'bg-rose-100 text-rose-800'
-                          : 'bg-blue-100 text-blue-800'
+                          : 'bg-slate-100 text-slate-800'
                       }`}>
                         {r.status}
                       </span>
                     </td>
                     <td className="py-2.5 px-3 text-[#0F172A]">{r.candidatesEvaluated}</td>
                     <td className="py-2.5 px-3 font-bold text-blue-600">{r.applicationsSubmitted}</td>
-                    <td className="py-2.5 px-3 font-bold text-emerald-600">{r.successfulConfirmations}</td>
+                    <td className="py-2.5 px-3 font-bold text-emerald-600">
+                      {r.applicationsConfirmed ?? r.successfulConfirmations ?? 0}
+                    </td>
                     <td className="py-2.5 px-3 text-rose-600">{r.blockedCount}</td>
-                    <td className="py-2.5 px-3 font-bold text-amber-600">{r.unknownOutcomesCount}</td>
+                    <td className="py-2.5 px-3 font-bold text-amber-600">
+                      {r.outcomeUnknownCount ?? r.unknownOutcomesCount ?? 0}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -476,6 +690,52 @@ export const CampaignDashboard: React.FC = () => {
           </div>
         )}
       </Card>
+
+      {/* Explicit Confirmation Modal: Arm Stage 1 Campaign */}
+      {showArmModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xl w-full max-w-lg p-6 space-y-4">
+            <div className="flex items-center gap-3 text-amber-600">
+              <AlertTriangle className="w-6 h-6 shrink-0" />
+              <h3 className="text-base font-bold text-[#0F172A]">Confirm Stage 1 Campaign Arming</h3>
+            </div>
+            <p className="text-xs text-[#64748B] leading-relaxed">
+              You are about to arm the autonomous campaign under strict Stage 1 controlled activation:
+            </p>
+            <div className="p-3 bg-slate-50 border border-slate-200 rounded-lg text-xs space-y-1.5 font-mono text-slate-700">
+              <div>- Daily maximum: <strong>1 application per calendar day</strong></div>
+              <div>- Minimum Fit Score: <strong>85%</strong></div>
+              <div>- Minimum Readiness Score: <strong>90%</strong></div>
+              <div>- Per-Company daily limit: <strong>1</strong></div>
+              <div>- Per-ATS daily limit: <strong>1</strong></div>
+              <div>- Genuine positive ATS employer confirmation strictly required</div>
+              <div>- Ambiguous outcomes lock daily quota slot pending manual reconciliation</div>
+            </div>
+            <p className="text-[11px] text-rose-700 font-semibold">
+              Are you sure you want to proceed with arming the campaign?
+            </p>
+            <div className="flex items-center justify-end gap-2 pt-3 border-t border-[#F1F5F9]">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowArmModal(false)}
+                disabled={isUpdating}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleArmStage1}
+                disabled={isUpdating}
+                icon={<Play className="w-3.5 h-3.5" />}
+              >
+                {isUpdating ? 'Arming...' : 'Confirm & Arm 1/day Campaign'}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Limits & Thresholds Modal */}
       {showConfigModal && (

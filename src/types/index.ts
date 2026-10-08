@@ -569,22 +569,43 @@ export interface PolicyDecisionResult {
 }
 
 export interface CampaignConfig {
+  stage?: string;
   dailyMaxApplications: number;
   minFitScore: number;
   minReadinessScore: number;
   maxPerCompanyDaily: number;
   maxPerAtsDaily: number;
-  cooldownSeconds: number;
+  cooldownSeconds?: number;
+  cooldownBetweenAppsSeconds?: number;
   isEnabled: boolean;
   emergencyStop: boolean;
 }
 
+export interface CampaignDailyQuota {
+  date: string;
+  dailyMaxApplications: number;
+  applicationsAttempted: number;
+  applicationsSubmitted: number;
+  applicationsConfirmed: number;
+  failedBeforeSubmission: number;
+  outcomeUnknownCount: number;
+  lockedSlots: number;
+  remainingCapacity: number;
+  companiesApplied: Record<string, number>;
+  atsApplied: Record<string, number>;
+  updatedAt: string;
+}
+
 export interface CampaignDailyStatus {
   date: string;
+  stage?: string;
   isEnabled: boolean;
   emergencyStop: boolean;
   dailyLimit: number;
   submittedToday: number;
+  applicationsAttempted?: number;
+  outcomeUnknownCount?: number;
+  lockedSlots?: number;
   remainingCapacity: number;
   minFitScore: number;
   minReadinessScore: number;
@@ -605,6 +626,20 @@ export interface CandidateEvaluationSummary {
   skipOrBlockReason?: string | null;
 }
 
+export interface TopCandidateReport {
+  jobId: string;
+  roleTitle: string;
+  companyName: string;
+  fitScore: number;
+  readinessState: string;
+  policyDecision: string;
+  atsProvider: string;
+  freshnessStatus: string;
+  duplicateStatus: string;
+  eligible: boolean;
+  reasons?: string | null;
+}
+
 export interface CampaignQueueEvaluationResult {
   evaluatedAt: string;
   totalEvaluated: number;
@@ -614,20 +649,62 @@ export interface CampaignQueueEvaluationResult {
   candidates: CandidateEvaluationSummary[];
 }
 
+export interface DailyCampaignReport {
+  campaignRunId?: string | null;
+  date: string;
+  stage: string;
+  isEnabled: boolean;
+  emergencyStop: boolean;
+  discoveryCount: number;
+  qualifiedCount: number;
+  freshVerifiedCount: number;
+  eligibleAutoApplyCount: number;
+  skippedCount: number;
+  blockedCount: number;
+  manualReviewCount: number;
+  applicationsAttempted: number;
+  applicationsPositivelyConfirmed: number;
+  outcomeUnknownCount: number;
+  captchaMfaAuthBlocks: number;
+  dailyQuotaUsed: number;
+  dailyQuotaRemaining: number;
+  topEligibleCandidates: TopCandidateReport[];
+  generatedAt: string;
+}
+
+export interface CampaignCycleExecutionResult {
+  runId: string;
+  status: string;
+  stage: string;
+  dryRun: boolean;
+  totalEvaluated: number;
+  eligibleCount: number;
+  attemptedJobId?: string | null;
+  submittedApplicationId?: string | null;
+  confirmationId?: string | null;
+  outcomeState?: string | null;
+  message: string;
+  executedAt: string;
+}
+
 export interface CampaignRun {
   id: string;
   startedAt: string;
   completedAt?: string | null;
-  status: 'running' | 'completed' | 'aborted' | 'stopped';
+  status: string;
   candidatesEvaluated: number;
   candidatesEligible: number;
   applicationsSubmitted: number;
-  successfulConfirmations: number;
+  applicationsConfirmed?: number;
+  successfulConfirmations?: number;
   blockedCount: number;
   skippedCount: number;
-  failedCount: number;
-  unknownOutcomesCount: number;
+  failedCount?: number;
+  outcomeUnknownCount?: number;
+  unknownOutcomesCount?: number;
   summary?: string;
+  notes?: string;
   details?: Record<string, any>;
 }
+
 
