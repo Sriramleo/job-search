@@ -178,7 +178,11 @@ export const CompanyDetail: React.FC = () => {
                           <span>{job.location}</span>
                           <span>·</span>
                           <span className="font-semibold text-slate-800">
-                            €{(job.salaryMin / 1000).toFixed(0)}K–€{(job.salaryMax / 1000).toFixed(0)}K
+                            {job.salaryMin && job.salaryMax && job.salaryMin > 0 && job.salaryMax > 0
+                              ? `€${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K`
+                              : job.salaryMin && job.salaryMin > 0
+                              ? `€${(job.salaryMin / 1000).toFixed(0)}K+`
+                              : 'Not specified'}
                           </span>
                         </div>
                       </div>

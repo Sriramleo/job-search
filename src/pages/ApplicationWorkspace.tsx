@@ -381,7 +381,17 @@ export const ApplicationWorkspace: React.FC = () => {
     if (!application) return;
     setIsSubmitting(true);
     try {
-      const updated = await applicationsApi.markSubmitted(application.id, {
+      let targetAppId = application.id;
+      if (targetAppId.startsWith('preview-')) {
+        // Ensure preview application is safely materialized into an authoritative MongoDB record
+        const persisted = await applicationsApi.persistPreview(targetAppId, application.jobId);
+        if (persisted && persisted.id) {
+          targetAppId = persisted.id;
+          setApplication(persisted);
+        }
+      }
+
+      const updated = await applicationsApi.markSubmitted(targetAppId, {
         notes: 'Submitted manually by candidate in external ATS',
         submissionMethod: 'External ATS Career Portal',
         submittedAt: new Date().toISOString(),
@@ -481,7 +491,11 @@ export const ApplicationWorkspace: React.FC = () => {
               <div>
                 <span className="text-[#64748B] block text-[11px]">Salary Band</span>
                 <span className="font-bold text-[#0F172A] tabular-nums">
-                  €{(job.salaryMin / 1000).toFixed(0)}K–€{(job.salaryMax / 1000).toFixed(0)}K
+                  {job.salaryMin && job.salaryMax && job.salaryMin > 0 && job.salaryMax > 0
+                    ? `€${(job.salaryMin / 1000).toFixed(0)}K–€${(job.salaryMax / 1000).toFixed(0)}K`
+                    : job.salaryMin && job.salaryMin > 0
+                    ? `€${(job.salaryMin / 1000).toFixed(0)}K+`
+                    : 'Not specified'}
                 </span>
               </div>
               <div>

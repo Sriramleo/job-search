@@ -81,6 +81,17 @@ export const applicationsApi = {
     return await apiClient.post<Application>(`/applications/${applicationId}/mark-submitted`, request || {});
   },
 
+  /**
+   * Persist an in-memory preview application into an authoritative MongoDB record before submitting.
+   */
+  async persistPreview(previewId?: string, jobId?: string): Promise<Application> {
+    const params = new URLSearchParams();
+    if (previewId) params.append('previewId', previewId);
+    if (jobId) params.append('jobId', jobId);
+    const query = params.toString() ? `?${params.toString()}` : '';
+    return await apiClient.post<Application>(`/applications/persist-preview${query}`, {});
+  },
+
   async startAutomation(applicationId: string, options?: any) {
     return await apiClient.post(`/applications/${applicationId}/automation/start`, options || {});
   },

@@ -159,7 +159,7 @@ export const Dashboard: React.FC = () => {
 
 
   const formatSalary = (min?: number, max?: number) => {
-    if (!min || min <= 0 || !max || max <= 0) return 'Salary: Unknown';
+    if (!min || min <= 0 || !max || max <= 0) return 'Not specified';
     return `€${(min / 1000).toFixed(0)}K–€${(max / 1000).toFixed(0)}K`;
   };
 
