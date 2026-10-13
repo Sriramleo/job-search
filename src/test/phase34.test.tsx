@@ -15,6 +15,7 @@ vi.mock('../api', () => ({
     updateDraft: vi.fn(),
     regenerateArtifact: vi.fn(),
     getDocuments: vi.fn(),
+    getApplications: vi.fn(),
   },
   jobsApi: {
     getJobs: vi.fn(),
