@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { Briefcase, SlidersHorizontal, RefreshCw } from 'lucide-react';
+import { Briefcase, Archive, SlidersHorizontal, RefreshCw } from 'lucide-react';
 import { jobsApi } from '../api';
 import { Job, FitLevel, EvidenceStatus, PipelineStage } from '../types';
 import { PageHeader } from '../components/common/PageHeader';
@@ -30,8 +30,18 @@ export function getJobTimestamp(job: any): string {
   return String(ts);
 }
 
-export const Jobs: React.FC = () => {
+export interface JobsProps {
+  defaultTab?: 'active' | 'archive';
+}
+
+export const Jobs: React.FC<JobsProps> = ({ defaultTab = 'active' }) => {
   const [searchParams, setSearchParams] = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'archive' || searchParams.get('status') === 'Archived'
+    ? 'archive'
+    : defaultTab;
+  const [activeTab, setActiveTab] = useState<'active' | 'archive'>(initialTab);
+  const [activeCount, setActiveCount] = useState<number | null>(null);
+  const [archiveCount, setArchiveCount] = useState<number | null>(null);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -54,11 +64,26 @@ export const Jobs: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 8;
 
+  // Load counts for both tabs
+  const loadCounts = async () => {
+    try {
+      const [activeList, archiveList] = await Promise.all([
+        jobsApi.getJobs({ limit: 500 }),
+        jobsApi.getJobs({ status: 'Archived' as any, limit: 500 }),
+      ]);
+      setActiveCount(activeList.length);
+      setArchiveCount(archiveList.length);
+    } catch {
+      // ignore count fetch error
+    }
+  };
+
   // Load jobs with filters
   const loadJobs = async () => {
     setIsLoading(true);
     setError(null);
     try {
+      const isArchive = activeTab === 'archive';
       const data = await jobsApi.getJobs({
         search: searchQuery,
         location: locationFilter,
@@ -67,6 +92,7 @@ export const Jobs: React.FC = () => {
         germanRequirement: germanFilter,
         relocationStatus: relocationFilter as any,
         freshness: freshnessFilter !== 'all' ? freshnessFilter : undefined,
+        status: isArchive ? ('Archived' as any) : undefined,
         sortBy: sortField,
         sortDirection: sortDirection,
         limit: 500,
@@ -107,8 +133,22 @@ export const Jobs: React.FC = () => {
   };
 
   useEffect(() => {
+    loadCounts();
+  }, []);
+
+  useEffect(() => {
     loadJobs();
-  }, [searchQuery, locationFilter, seniorityFilter, minSalaryFilter, germanFilter, relocationFilter, freshnessFilter, sortField, sortDirection]);
+  }, [activeTab, searchQuery, locationFilter, seniorityFilter, minSalaryFilter, germanFilter, relocationFilter, freshnessFilter, sortField, sortDirection]);
+
+  const handleTabChange = (tab: 'active' | 'archive') => {
+    setActiveTab(tab);
+    setCurrentPage(1);
+    setSearchParams((prev) => {
+      const updated = new URLSearchParams(prev);
+      updated.set('tab', tab);
+      return updated;
+    });
+  };
 
   // Handle saved search chips
   const handleSavedSearch = (name: string) => {
@@ -161,14 +201,21 @@ export const Jobs: React.FC = () => {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Jobs Discovery & Triage"
-        subtitle="Discover, qualify, and prioritize senior cloud, platform, Kubernetes, and SRE roles in Germany"
+        title={activeTab === 'active' ? 'Jobs Discovery & Triage' : 'Job Archive & Ineligible Records'}
+        subtitle={
+          activeTab === 'active'
+            ? 'Discover, qualify, and prioritize senior cloud, platform, Kubernetes, and SRE roles in Germany'
+            : 'Review applied roles, expired vacancies, and non-German positions kept for audit records'
+        }
         actions={
           <div className="flex items-center gap-2">
             <Button
               variant="secondary"
               size="sm"
-              onClick={loadJobs}
+              onClick={() => {
+                loadJobs();
+                loadCounts();
+              }}
               icon={<RefreshCw className="w-3.5 h-3.5" />}
             >
               Refresh Feed
@@ -176,6 +223,54 @@ export const Jobs: React.FC = () => {
           </div>
         }
       />
+
+      {/* Active vs Archive View Toggle */}
+      <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2">
+        <button
+          onClick={() => handleTabChange('active')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'active'
+              ? 'bg-blue-600 text-white shadow-xs'
+              : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100'
+          }`}
+        >
+          <Briefcase className="w-3.5 h-3.5" />
+          <span>Active Opportunities</span>
+          {activeCount !== null && (
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === 'active'
+                  ? 'bg-blue-700 text-white'
+                  : 'bg-slate-200 text-slate-700'
+              }`}
+            >
+              {activeCount}
+            </span>
+          )}
+        </button>
+        <button
+          onClick={() => handleTabChange('archive')}
+          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-lg text-xs font-semibold transition-all ${
+            activeTab === 'archive'
+              ? 'bg-slate-800 text-white shadow-xs'
+              : 'text-[#64748B] hover:text-[#0F172A] hover:bg-slate-100'
+          }`}
+        >
+          <Archive className="w-3.5 h-3.5" />
+          <span>Archive & Ineligible</span>
+          {archiveCount !== null && (
+            <span
+              className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                activeTab === 'archive'
+                  ? 'bg-slate-900 text-white'
+                  : 'bg-slate-200 text-slate-700'
+              }`}
+            >
+              {archiveCount}
+            </span>
+          )}
+        </button>
+      </div>
 
       {/* Search and Filters */}
       <div className="space-y-3">

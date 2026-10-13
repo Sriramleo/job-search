@@ -43,6 +43,7 @@ export const App: React.FC = () => {
             
             <Route path="jobs" element={<Jobs />} />
             <Route path="jobs/:id" element={<JobDetail />} />
+            <Route path="archive" element={<Jobs defaultTab="archive" />} />
 
             <Route path="applications" element={<Applications />} />
             <Route path="applications/:id" element={<ApplicationWorkspace />} />

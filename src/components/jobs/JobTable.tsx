@@ -4,7 +4,7 @@ import { ArrowUpDown, ExternalLink, ChevronRight, Eye } from 'lucide-react';
 import { Job } from '../../types';
 import { FitBadge, EvidenceBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { getSourceAttribution, getApplicationRouteAttribution } from '../../utils/jobSource';
+import { getSourceAttribution } from '../../utils/jobSource';
 
 export interface JobTableProps {
   jobs: Job[];
@@ -59,9 +59,8 @@ export const JobTable: React.FC<JobTableProps> = ({
                   <ArrowUpDown className="w-3 h-3 text-slate-400" />
                 </button>
               </th>
-              <th className="py-3 px-4 w-[12%] text-center">Technical Fit</th>
+              <th className="py-3 px-4 w-[12%] text-center">Fit Score</th>
               <th className="py-3 px-4 w-[14%]">Relocation Evidence</th>
-              <th className="py-3 px-4 w-[14%]">Application Route</th>
               <th className="py-3 px-4 text-right">Actions</th>
             </tr>
           </thead>
@@ -115,6 +114,28 @@ export const JobTable: React.FC<JobTableProps> = ({
                         {(() => {
                           const vStatus = job.verificationStatus || 'UNKNOWN';
                           const verifiedDate = job.lastSuccessfulVerifiedAt || job.lastVerifiedAt;
+                          if (job.germanyEligible === false) {
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-rose-50 text-rose-700 border border-rose-200"
+                                title={job.ineligibilityReason || 'Outside Germany'}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
+                                {job.ineligibilityReason === 'US_ONLY' ? 'US Only' : 'Outside Germany'}
+                              </span>
+                            );
+                          }
+                          if (vStatus === 'JOB_UNAVAILABLE') {
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-100 text-slate-700 border border-slate-200"
+                                title="Position closed or vacancy removed"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-slate-500" />
+                                Closed / Expired
+                              </span>
+                            );
+                          }
                           if (vStatus === 'VERIFIED') {
                             return (
                               <span
@@ -174,27 +195,12 @@ export const JobTable: React.FC<JobTableProps> = ({
 
                   {/* Fit Badge */}
                   <td className="py-3.5 px-4 text-center whitespace-nowrap">
-                    <FitBadge fit={job.technicalFit} />
+                    <FitBadge score={job.fitScore} fit={job.technicalFit} />
                   </td>
 
                   {/* Relocation */}
                   <td className="py-3.5 px-4 whitespace-nowrap">
                     <EvidenceBadge status={job.relocationStatus} />
-                  </td>
-
-                  {/* Route */}
-                  <td className="py-3.5 px-4 text-[#475569]">
-                    {(() => {
-                      const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
-                      return (
-                        <span
-                          className={`inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border ${routeAttr.badgeClasses}`}
-                          title={routeAttr.description}
-                        >
-                          {routeAttr.label}
-                        </span>
-                      );
-                    })()}
                   </td>
 
                   {/* Actions */}

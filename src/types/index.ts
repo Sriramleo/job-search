@@ -138,6 +138,9 @@ export interface Job {
   lastVerificationReason?: string;
   verificationStatus?: 'VERIFIED' | 'STALE' | 'UNKNOWN' | 'JOB_UNAVAILABLE';
   applicationType?: 'Company Careers / Internal' | 'External ATS' | 'External Job Board' | 'Unknown';
+  fitScore?: number | null;
+  germanyEligible?: boolean;
+  ineligibilityReason?: string | null;
   keySkills: string[];
   description: string;
   whyMatchesProfile: {

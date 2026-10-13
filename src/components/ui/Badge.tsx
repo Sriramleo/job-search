@@ -40,20 +40,47 @@ export const Badge: React.FC<BadgeProps> = ({
   );
 };
 
-export const FitBadge: React.FC<{ fit: FitLevel; size?: 'sm' | 'md' }> = ({ fit, size = 'sm' }) => {
-  const map: Record<FitLevel, { variant: BadgeProps['variant']; label: string }> = {
-    Strong: { variant: 'green', label: 'Strong Fit' },
-    Good: { variant: 'blue', label: 'Good Fit' },
-    Moderate: { variant: 'amber', label: 'Moderate Fit' },
-    Weak: { variant: 'gray', label: 'Weak Fit' },
-  };
+export const FitBadge: React.FC<{
+  fit?: FitLevel;
+  score?: number | null;
+  size?: 'sm' | 'md';
+}> = ({ fit, score, size = 'sm' }) => {
+  if (score !== undefined && score !== null) {
+    const rounded = Math.round(score);
+    let variant: BadgeProps['variant'] = 'gray';
+    if (rounded >= 80) variant = 'green';
+    else if (rounded >= 70) variant = 'blue';
+    else if (rounded >= 60) variant = 'amber';
 
-  const config = map[fit] || map.Moderate;
+    return (
+      <Badge variant={variant} size={size}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-80" />
+        {rounded}% Fit
+      </Badge>
+    );
+  }
+
+  if (fit) {
+    const map: Record<FitLevel, { variant: BadgeProps['variant']; label: string }> = {
+      Strong: { variant: 'green', label: 'Strong Fit' },
+      Good: { variant: 'blue', label: 'Good Fit' },
+      Moderate: { variant: 'amber', label: 'Moderate Fit' },
+      Weak: { variant: 'gray', label: 'Weak Fit' },
+    };
+    const config = map[fit] || map.Moderate;
+
+    return (
+      <Badge variant={config.variant} size={size}>
+        <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-80" />
+        {config.label}
+      </Badge>
+    );
+  }
 
   return (
-    <Badge variant={config.variant} size={size}>
-      <span className="w-1.5 h-1.5 rounded-full bg-current mr-1.5 opacity-80" />
-      {config.label}
+    <Badge variant="gray" size={size}>
+      <span className="w-1.5 h-1.5 rounded-full bg-slate-400 mr-1.5 opacity-60" />
+      Not evaluated
     </Badge>
   );
 };

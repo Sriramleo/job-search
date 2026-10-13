@@ -220,16 +220,16 @@ export const JobDetail: React.FC = () => {
         </div>
       )}
 
-      {/* FIT SUMMARY ROW (Categorical labels: Strong / Good / Moderate / Weak) */}
+      {/* FIT SUMMARY ROW */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">
           <span className="text-xs text-[#64748B] font-medium uppercase tracking-wider block">
-            Technical Fit
+            Fit Score
           </span>
           <div className="mt-1.5">
-            <FitBadge fit={job.technicalFit} size="md" />
+            <FitBadge score={job.fitScore} fit={job.technicalFit} size="md" />
           </div>
-          <span className="text-[11px] text-[#64748B] mt-1 block">AWS EKS & Terraform</span>
+          <span className="text-[11px] text-[#64748B] mt-1 block">Deterministic qualification</span>
         </div>
 
         <div className="bg-white p-4 rounded-xl border border-[#E2E8F0] shadow-2xs">

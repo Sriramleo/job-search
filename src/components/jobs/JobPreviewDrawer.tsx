@@ -15,7 +15,7 @@ import { applicationsApi } from '../../api';
 import { Drawer } from '../ui/Drawer';
 import { FitBadge, EvidenceBadge } from '../ui/Badge';
 import { Button } from '../ui/Button';
-import { getSourceAttribution, getApplicationRouteAttribution } from '../../utils/jobSource';
+import { getSourceAttribution } from '../../utils/jobSource';
 
 export interface JobPreviewDrawerProps {
   job: Job | null;
@@ -87,9 +87,9 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
           </span>
         </div>
         <div>
-          <span className="text-[#64748B] block text-[11px]">Technical Match</span>
+          <span className="text-[#64748B] block text-[11px]">Fit Score</span>
           <div className="mt-0.5">
-            <FitBadge fit={job.technicalFit} />
+            <FitBadge score={job.fitScore} fit={job.technicalFit} />
           </div>
         </div>
         <div>
@@ -106,17 +106,6 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
               <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium border mt-0.5 ${src.colorClasses}`}>
                 <span className={`w-1.5 h-1.5 rounded-full ${src.dotColor}`} />
                 {src.label}
-              </span>
-            );
-          })()}
-        </div>
-        <div>
-          <span className="text-[#64748B] block text-[11px]">Application Route</span>
-          {(() => {
-            const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
-            return (
-              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium border mt-0.5 ${routeAttr.badgeClasses}`} title={routeAttr.description}>
-                {routeAttr.label}
               </span>
             );
           })()}
@@ -207,16 +196,6 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
         </div>
       </div>
 
-      {/* Recommended Route */}
-      <div className="space-y-1.5 text-xs">
-        <span className="font-semibold text-[#0F172A] uppercase tracking-wider text-[11px] block">
-          Recommended Application Route
-        </span>
-        <div className="p-3 bg-blue-50/50 border border-blue-100 rounded-xl">
-          <div className="font-semibold text-blue-900">{job.applicationRoute}</div>
-          <div className="text-[11px] text-blue-700 mt-1">{job.routeReason}</div>
-        </div>
-      </div>
 
       {/* Key Skills */}
       <div className="space-y-2">
