@@ -16,9 +16,9 @@ All primary and secondary operational objectives for Phase 042 have been achieve
 
 | Component | Repository | Active Branch & Head Commit | Deployment Target / Pipeline State | Delivery State |
 | :--- | :--- | :--- | :--- | :--- |
-| **Backend API** | `Sriramleo/job-search-api` | `main` (`c416383`) | GHCR Multi-arch (`ghcr.io/sriramleo/job-search-api`) | Pushed to main, workflow building |
-| **Frontend UI** | `Sriramleo/job-search` | `main` (`dee33a9`) | Cloudflare Pages (`jobsearch.sriramdevops.site`) | 59/59 unit/integration tests passing |
-| **GitOps Config** | `Sriramleo/homelab-gitops` | `main` (`f457c66`) | k0s Cluster Namespace `backend` | Argo CD automated sync |
+| **Backend API** | `Sriramleo/job-search-api` | `main` (`c416383`) | `ghcr.io/sriramleo/job-search-api:85` | Multi-arch image built & pushed |
+| **Frontend UI** | `Sriramleo/job-search` | `main` (`33b52d6`) | Cloudflare Pages (`jobsearch.sriramdevops.site`) | 59/59 unit/integration tests passing |
+| **GitOps Config** | `Sriramleo/homelab-gitops` | `main` (`0ff99c0`) | k0s Cluster Namespace `backend` | Argo CD automated sync |
 
 - **Authoritative Database**: Live MongoDB Atlas cluster `job_search_db` accessed strictly via cluster credentials with TLS/SSL encryption.
 
