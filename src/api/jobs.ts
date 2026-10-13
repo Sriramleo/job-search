@@ -31,8 +31,10 @@ export const jobsApi = {
       if (params.workModel && params.workModel !== 'all') queryParams.workModel = params.workModel;
       if (params.sortBy) queryParams.sortBy = params.sortBy;
       if (params.sortDirection) queryParams.sortDirection = params.sortDirection;
-      if (params.limit) queryParams.limit = params.limit;
+      queryParams.limit = params.limit !== undefined ? params.limit : 500;
       if (params.offset) queryParams.skip = params.offset;
+    } else {
+      queryParams.limit = 500;
     }
     let jobs = await apiClient.get<Job[]>('/jobs', { params: queryParams });
     if (params?.minSalary) {

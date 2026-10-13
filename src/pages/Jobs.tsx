@@ -34,6 +34,7 @@ export const Jobs: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const [jobs, setJobs] = useState<Job[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Filters & State
   const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
@@ -55,6 +56,7 @@ export const Jobs: React.FC = () => {
   // Load jobs with filters
   const loadJobs = async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const data = await jobsApi.getJobs({
         search: searchQuery,
@@ -65,6 +67,7 @@ export const Jobs: React.FC = () => {
         relocationStatus: relocationFilter as any,
         sortBy: sortField,
         sortDirection: sortDirection,
+        limit: 500,
       });
 
       // Client-side sort fallback ensuring strict newest-first default
@@ -94,6 +97,8 @@ export const Jobs: React.FC = () => {
       });
 
       setJobs(sorted);
+    } catch (err: any) {
+      setError(err?.message || 'Failed to load opportunities from the server.');
     } finally {
       setIsLoading(false);
     }
@@ -204,6 +209,13 @@ export const Jobs: React.FC = () => {
       {/* Main Content Area */}
       {isLoading ? (
         <LoadingSkeleton lines={8} />
+      ) : error ? (
+        <EmptyState
+          title="Unable to load opportunities"
+          description={error}
+          actionText="Retry Loading"
+          onAction={loadJobs}
+        />
       ) : jobs.length === 0 ? (
         <EmptyState
           title="No opportunities found"
