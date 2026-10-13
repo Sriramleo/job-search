@@ -221,12 +221,20 @@ export const ApplicationWorkspace: React.FC = () => {
     if (!job) return;
     setIsSaving(true);
     try {
-      const newApp = await applicationsApi.createApplication(job.id);
-      setApplication(newApp);
-      setSaveToast(true);
-      setTimeout(() => setSaveToast(false), 2500);
-    } catch (err) {
+      let newApp = null;
+      if (application?.id?.startsWith('preview-')) {
+        newApp = await applicationsApi.persistPreview(application.id, job.id);
+      } else {
+        newApp = await applicationsApi.createApplication(job.id);
+      }
+      if (newApp) {
+        setApplication(newApp);
+        setSaveToast(true);
+        setTimeout(() => setSaveToast(false), 2500);
+      }
+    } catch (err: any) {
       console.error('Failed to create application draft:', err);
+      alert(`Failed to create application draft: ${err.message || err}`);
     } finally {
       setIsSaving(false);
     }
@@ -350,20 +358,25 @@ export const ApplicationWorkspace: React.FC = () => {
     setIsSubmitting(true);
     setSubmissionError(null);
     try {
-      // SAFETY: bind submission authorization to the persisted application record.
-      // The displayed/resolved job object is presentation data and must never be
-      // used as the authoritative job/company identity for the submission request.
-      const res = await applicationsApi.approveAndSubmit(application.id, {
-        jobId: application.jobId,
-        companyId: application.companyId,
-        cvVariantId: application.cvVariantId,
+      let targetApp = application;
+      if (targetApp.id.startsWith('preview-')) {
+        const persisted = await applicationsApi.persistPreview(targetApp.id, targetApp.jobId);
+        if (persisted && persisted.id) {
+          targetApp = persisted;
+          setApplication(persisted);
+        }
+      }
+      const res = await applicationsApi.approveAndSubmit(targetApp.id, {
+        jobId: targetApp.jobId,
+        companyId: targetApp.companyId,
+        cvVariantId: targetApp.cvVariantId,
         approvedBy: 'candidate',
         confirmationAcknowledged: true,
         notes: 'Explicit human approval via Application Workspace',
       });
       setSubmissionResult(res);
       try {
-        const updated = await applicationsApi.getApplication(application.id);
+        const updated = await applicationsApi.getApplication(targetApp.id);
         if (updated) setApplication(updated);
       } catch {}
     } catch (err: any) {
