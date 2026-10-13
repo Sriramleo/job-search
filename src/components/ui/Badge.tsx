@@ -6,6 +6,7 @@ export interface BadgeProps {
   variant?: 'blue' | 'purple' | 'green' | 'amber' | 'red' | 'gray';
   size?: 'sm' | 'md';
   className?: string;
+  title?: string;
 }
 
 export const Badge: React.FC<BadgeProps> = ({
@@ -13,6 +14,7 @@ export const Badge: React.FC<BadgeProps> = ({
   variant = 'gray',
   size = 'md',
   className = '',
+  title,
 }) => {
   const variantStyles = {
     blue: 'bg-blue-50 text-blue-700 border-blue-200',
@@ -30,6 +32,7 @@ export const Badge: React.FC<BadgeProps> = ({
 
   return (
     <span
+      title={title}
       className={`inline-flex items-center font-medium rounded-md border ${variantStyles[variant]} ${sizeStyles[size]} ${className}`}
     >
       {children}
@@ -156,6 +159,45 @@ export const ClaimBadge: React.FC<{
     <Badge variant={config.variant} size={size}>
       <span className="mr-1 text-[11px] font-bold">{config.icon}</span>
       {status}
+    </Badge>
+  );
+};
+
+export const SubmissionMethodBadge: React.FC<{
+  method?: string | null;
+  size?: 'sm' | 'md';
+}> = ({ method, size = 'sm' }) => {
+  if (!method) {
+    return (
+      <Badge variant="gray" size={size} className="text-slate-400 border-slate-200">
+        —
+      </Badge>
+    );
+  }
+
+  const m = method.toUpperCase();
+  if (m === 'AUTO' || m.includes('PLAYWRIGHT') || m.includes('AUTOMAT')) {
+    return (
+      <Badge variant="green" size={size} className="font-semibold" title="Automated submission positively confirmed by ATS">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-600 mr-1.5" />
+        Auto (ATS)
+      </Badge>
+    );
+  }
+
+  if (m === 'MANUAL' || m.includes('PORTAL') || m.includes('EXTERNAL ATS') || m.includes('HUMAN')) {
+    return (
+      <Badge variant="purple" size={size} className="font-semibold" title="Manually submitted on employer portal">
+        <span className="w-1.5 h-1.5 rounded-full bg-purple-600 mr-1.5" />
+        Manual Portal
+      </Badge>
+    );
+  }
+
+  return (
+    <Badge variant="amber" size={size} className="font-semibold" title="Legacy or unverified submission method">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-600 mr-1.5" />
+      Unknown Method
     </Badge>
   );
 };

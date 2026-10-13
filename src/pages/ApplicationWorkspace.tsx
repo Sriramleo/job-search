@@ -32,7 +32,7 @@ import { OutcomeIntelligenceSection } from '../components/applications/OutcomeIn
 import { PageHeader } from '../components/common/PageHeader';
 import { Card } from '../components/ui/Card';
 import { Tabs } from '../components/ui/Tabs';
-import { FitBadge, AutomationBadge, Badge, ClaimBadge } from '../components/ui/Badge';
+import { FitBadge, AutomationBadge, Badge, ClaimBadge, SubmissionMethodBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { ValidationChecklist } from '../components/applications/ValidationChecklist';
 import { LoadingSkeleton, ErrorState } from '../components/ui/FeedbackStates';
@@ -393,7 +393,7 @@ export const ApplicationWorkspace: React.FC = () => {
 
       const updated = await applicationsApi.markSubmitted(targetAppId, {
         notes: 'Submitted manually by candidate in external ATS',
-        submissionMethod: 'External ATS Career Portal',
+        submissionMethod: 'MANUAL',
         submittedAt: new Date().toISOString(),
       });
       setApplication(updated);
@@ -419,6 +419,9 @@ export const ApplicationWorkspace: React.FC = () => {
         subtitle={`${job.companyName} · ${job.location} · Route: ${application.route} · Target: €80K+ Relocation to Germany`}
         actions={
           <div className="flex items-center gap-3">
+            {application?.submissionMethod && (
+              <SubmissionMethodBadge method={application.submissionMethod} />
+            )}
             <AutomationBadge state={effectiveAutomationState} />
             <Button
               variant="secondary"

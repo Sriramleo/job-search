@@ -8,6 +8,9 @@ export interface ApplicationFilterParams {
   outcomeState?: string;
   companyId?: string;
   jobId?: string;
+  submissionMethod?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
   limit?: number;
   skip?: number;
 }

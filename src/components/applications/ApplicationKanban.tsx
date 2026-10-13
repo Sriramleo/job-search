@@ -2,7 +2,7 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Calendar, ArrowRight, Building, Layers } from 'lucide-react';
 import { Application, PipelineStage } from '../../types';
-import { AutomationBadge } from '../ui/Badge';
+import { AutomationBadge, SubmissionMethodBadge } from '../ui/Badge';
 
 export interface ApplicationKanbanProps {
   applications: Application[];
@@ -94,7 +94,12 @@ export const ApplicationKanban: React.FC<ApplicationKanbanProps> = ({
                           <Calendar className="w-3 h-3 text-slate-400" />
                           <span>{app.nextActionDueDate}</span>
                         </span>
-                        <AutomationBadge state={app.automationState} />
+                        <div className="flex items-center gap-1">
+                          {app.submissionMethod && (
+                            <SubmissionMethodBadge method={app.submissionMethod} size="sm" />
+                          )}
+                          <AutomationBadge state={app.automationState} />
+                        </div>
                       </div>
                     </div>
                   </div>

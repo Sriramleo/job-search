@@ -4,28 +4,28 @@ import {
   Layers,
   Table as TableIcon,
   Kanban as KanbanIcon,
-  Plus,
-  ExternalLink,
-  ChevronRight,
-  ArrowRight,
   Calendar,
+  ArrowDownUp,
+  ShieldCheck,
+  AlertTriangle,
+  Info,
 } from 'lucide-react';
 import { applicationsApi } from '../api';
 import { Application } from '../types';
 import { PageHeader } from '../components/common/PageHeader';
-import { Tabs } from '../components/ui/Tabs';
-import { StatusBadge, AutomationBadge } from '../components/ui/Badge';
+import { StatusBadge, AutomationBadge, SubmissionMethodBadge } from '../components/ui/Badge';
 import { Button } from '../components/ui/Button';
 import { ApplicationKanban } from '../components/applications/ApplicationKanban';
 import { CampaignDashboard } from '../components/campaign/CampaignDashboard';
 import { LoadingSkeleton, EmptyState } from '../components/ui/FeedbackStates';
-import { ShieldCheck, AlertTriangle } from 'lucide-react';
 
 export const Applications: React.FC = () => {
   const navigate = useNavigate();
   const [applications, setApplications] = useState<Application[]>([]);
   const [viewMode, setViewMode] = useState<'kanban' | 'table' | 'campaign'>('kanban');
   const [outcomeFilter, setOutcomeFilter] = useState<string>('ALL');
+  const [submissionFilter, setSubmissionFilter] = useState<'ALL' | 'AUTO' | 'MANUAL' | 'UNKNOWN'>('ALL');
+  const [sortBy, setSortBy] = useState<'newest_submitted' | 'oldest_submitted' | 'method' | 'stage'>('newest_submitted');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -44,19 +44,92 @@ export const Applications: React.FC = () => {
     return <LoadingSkeleton lines={8} />;
   }
 
+  const isSubmitted = (app: Application) => {
+    return Boolean(
+      app.submittedAt ||
+      app.appliedDate ||
+      app.stage === 'Applied' ||
+      app.stage === 'Recruiter Screen' ||
+      app.stage === 'Interview' ||
+      app.stage === 'Offer' ||
+      app.stage === 'Rejected' ||
+      app.stage === 'Withdrawn' ||
+      app.stage === 'Closed' ||
+      app.automationState === 'Submitted'
+    );
+  };
+
+  const isAuto = (app: Application) => {
+    const m = (app.submissionMethod || '').toUpperCase();
+    return m === 'AUTO' || m.includes('PLAYWRIGHT') || m.includes('AUTOMAT');
+  };
+
+  const isManual = (app: Application) => {
+    const m = (app.submissionMethod || '').toUpperCase();
+    return m === 'MANUAL' || m.includes('PORTAL') || m.includes('EXTERNAL ATS') || m.includes('HUMAN');
+  };
+
+  const isUnknown = (app: Application) => {
+    const m = (app.submissionMethod || '').toUpperCase();
+    return m === 'UNKNOWN' || (isSubmitted(app) && !isAuto(app) && !isManual(app));
+  };
+
   const hasOutcomeUnknown = applications.some(
     (a) => a.automationState === 'Outcome Unknown' || a.automationState === 'OUTCOME_UNKNOWN'
   );
 
-  const filteredApplications = applications.filter((app) => {
-    if (outcomeFilter === 'ALL') return true;
-    if (outcomeFilter === 'INTERVIEW') {
-      return (
-        app.outcomeState === 'INTERVIEW_INVITATION' ||
-        app.outcomeState === 'INTERVIEW_SCHEDULED'
-      );
+  // Filter applications by outcome and submission method
+  let filtered = applications.filter((app) => {
+    // 1. Outcome filter
+    if (outcomeFilter !== 'ALL') {
+      if (outcomeFilter === 'INTERVIEW') {
+        if (app.outcomeState !== 'INTERVIEW_INVITATION' && app.outcomeState !== 'INTERVIEW_SCHEDULED') {
+          return false;
+        }
+      } else if (app.outcomeState !== outcomeFilter) {
+        return false;
+      }
     }
-    return app.outcomeState === outcomeFilter;
+
+    // 2. Submission Method filter
+    if (submissionFilter === 'AUTO') {
+      return isAuto(app);
+    }
+    if (submissionFilter === 'MANUAL') {
+      return isManual(app);
+    }
+    if (submissionFilter === 'UNKNOWN') {
+      return isUnknown(app);
+    }
+
+    return true;
+  });
+
+  // Sort applications
+  filtered.sort((a, b) => {
+    if (sortBy === 'newest_submitted' || sortBy === 'oldest_submitted') {
+      const tsA = a.submittedAt || a.appliedDate || '';
+      const tsB = b.submittedAt || b.appliedDate || '';
+      if (!tsA && !tsB) return 0;
+      if (!tsA) return 1;
+      if (!tsB) return -1;
+      return sortBy === 'newest_submitted'
+        ? tsB.localeCompare(tsA)
+        : tsA.localeCompare(tsB);
+    }
+
+    if (sortBy === 'method') {
+      const mA = a.submissionMethod || 'Z';
+      const mB = b.submissionMethod || 'Z';
+      return mA.localeCompare(mB);
+    }
+
+    if (sortBy === 'stage') {
+      const order = ['Qualified', 'Preparing', 'Ready', 'Applied', 'Recruiter Screen', 'Interview', 'Offer', 'Rejected', 'Withdrawn', 'Closed'];
+      return order.indexOf(a.stage) - order.indexOf(b.stage);
+    }
+
+    return 0;
   });
 
   const getOutcomeBadgeClass = (state?: string) => {
@@ -90,6 +163,29 @@ export const Applications: React.FC = () => {
     { id: 'REJECTION', label: 'Rejected', count: applications.filter((a) => a.outcomeState === 'REJECTION').length },
     { id: 'OFFER', label: 'Offer', count: applications.filter((a) => a.outcomeState === 'OFFER').length },
   ];
+
+  const submissionTabs = [
+    { id: 'ALL', label: 'All Submissions', count: applications.length },
+    { id: 'AUTO', label: 'Auto (ATS)', count: applications.filter(isAuto).length },
+    { id: 'MANUAL', label: 'Manual Portal', count: applications.filter(isManual).length },
+    { id: 'UNKNOWN', label: 'Unknown Method', count: applications.filter(isUnknown).length },
+  ];
+
+  const formatSubmissionDate = (app: Application) => {
+    const raw = app.submittedAt || app.appliedDate;
+    if (!raw) return '—';
+    try {
+      const d = new Date(raw);
+      if (isNaN(d.getTime())) return raw.substring(0, 10);
+      return d.toLocaleDateString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        year: 'numeric',
+      });
+    } catch {
+      return raw.substring(0, 10);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -135,16 +231,10 @@ export const Applications: React.FC = () => {
               </button>
             </div>
 
-            <Button
-              variant="primary"
-              size="sm"
-              disabled={applications.length === 0}
-              onClick={() => applications.length > 0 && navigate(`/applications/${applications[0].id}`)}
-              icon={<ArrowRight className="w-3.5 h-3.5" />}
-              iconPosition="right"
-            >
-              Open Active Workspace
-            </Button>
+            {/* Total pipeline count badge */}
+            <span className="text-xs font-semibold px-2.5 py-1 bg-slate-100 rounded-lg text-slate-700 border border-slate-200">
+              {filtered.length} of {applications.length} Records
+            </span>
           </div>
         }
       />
@@ -167,7 +257,69 @@ export const Applications: React.FC = () => {
         </div>
       )}
 
-      {/* Outcome Intelligence Filter Bar */}
+      {/* Submission Method & Sorting Control Bar */}
+      {viewMode !== 'campaign' && (
+        <div className="bg-slate-50/80 border border-slate-200/90 rounded-xl p-3 space-y-2.5">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Submission Method Filter Tabs */}
+            <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+              <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mr-1">
+                Method:
+              </span>
+              {submissionTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setSubmissionFilter(tab.id as any)}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded-lg font-medium whitespace-nowrap transition-colors ${
+                    submissionFilter === tab.id
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-white text-slate-600 hover:bg-slate-100 border border-slate-200'
+                  }`}
+                >
+                  <span>{tab.label}</span>
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-mono ${
+                      submissionFilter === tab.id ? 'bg-blue-700 text-blue-100' : 'bg-slate-100 text-slate-500'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                </button>
+              ))}
+            </div>
+
+            {/* Sort Dropdown */}
+            <div className="flex items-center gap-2 text-xs shrink-0">
+              <span className="flex items-center gap-1 text-slate-500 font-medium text-[11px]">
+                <ArrowDownUp className="w-3.5 h-3.5" />
+                Sort:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as any)}
+                className="bg-white border border-slate-200 rounded-lg px-2.5 py-1 text-xs text-slate-700 font-medium focus:ring-1 focus:ring-blue-500 focus:outline-none"
+              >
+                <option value="newest_submitted">Most Recently Submitted</option>
+                <option value="oldest_submitted">Oldest Submitted First</option>
+                <option value="method">Submission Method</option>
+                <option value="stage">Pipeline Stage</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Clarity note: readiness != submission */}
+          <div className="flex items-center gap-1.5 text-[11px] text-slate-500 pt-1 border-t border-slate-200/60">
+            <Info className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+            <span>
+              <strong>Note:</strong> Submission Method reflects actual employer-side submission proof.
+              <code className="mx-1 px-1 py-0.2 bg-slate-200/70 rounded text-[10px] font-mono text-slate-700">AUTO_APPLY_READY</code>
+              is an evaluation readiness state, not proof of automated submission.
+            </span>
+          </div>
+        </div>
+      )}
+
+      {/* Employer Outcome Filter Bar */}
       {viewMode !== 'campaign' && (
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           {outcomeTabs.map((tab) => (
@@ -197,13 +349,13 @@ export const Applications: React.FC = () => {
       {viewMode === 'campaign' ? (
         <CampaignDashboard />
       ) : viewMode === 'kanban' ? (
-        <ApplicationKanban applications={filteredApplications} />
+        <ApplicationKanban applications={filtered} />
       ) : (
         <div className="bg-white rounded-xl border border-[#E2E8F0] shadow-xs overflow-hidden">
-          {filteredApplications.length === 0 ? (
+          {filtered.length === 0 ? (
             <EmptyState
-              title="No applications match filter"
-              description="No applications currently match the selected outcome filter."
+              title="No applications match filters"
+              description="No applications currently match the selected submission method and outcome filters."
             />
           ) : (
             <table className="w-full text-left text-xs border-collapse">
@@ -211,16 +363,16 @@ export const Applications: React.FC = () => {
                 <tr className="bg-slate-50 border-b border-[#E2E8F0] text-[#64748B] font-semibold">
                   <th className="py-3 px-4">Opportunity</th>
                   <th className="py-3 px-4">Stage</th>
+                  <th className="py-3 px-4">Submission Method</th>
+                  <th className="py-3 px-4">Submitted Date</th>
                   <th className="py-3 px-4">Employer Outcome</th>
-                  <th className="py-3 px-4">Salary Range</th>
-                  <th className="py-3 px-4">Route</th>
                   <th className="py-3 px-4">Automation State</th>
                   <th className="py-3 px-4">Next Action</th>
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
-                {filteredApplications.map((app) => (
+                {filtered.map((app) => (
                   <tr
                     key={app.id}
                     onClick={() => navigate(`/applications/${app.id}`)}
@@ -231,11 +383,17 @@ export const Applications: React.FC = () => {
                         {app.jobTitle}
                       </span>
                       <span className="text-[11px] text-[#64748B] font-medium">
-                        {app.companyName} · {app.location}
+                        {app.companyName} · {app.location} · {app.salaryRange}
                       </span>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <StatusBadge stage={app.stage} />
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap">
+                      <SubmissionMethodBadge method={app.submissionMethod} />
+                    </td>
+                    <td className="py-3.5 px-4 whitespace-nowrap text-[#475569] font-medium tabular-nums">
+                      {formatSubmissionDate(app)}
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <span
@@ -246,10 +404,6 @@ export const Applications: React.FC = () => {
                         {app.outcomeState || 'NO_RESPONSE'}
                       </span>
                     </td>
-                    <td className="py-3.5 px-4 text-[#0F172A] font-medium tabular-nums">
-                      {app.salaryRange}
-                    </td>
-                    <td className="py-3.5 px-4 text-[#475569]">{app.route}</td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
                       <AutomationBadge state={app.automationState} />
                     </td>
@@ -274,8 +428,8 @@ export const Applications: React.FC = () => {
               </tbody>
             </table>
           )}
-      </div>
-    )}
-  </div>
-);
+        </div>
+      )}
+    </div>
+  );
 };
