@@ -102,15 +102,52 @@ export const JobTable: React.FC<JobTableProps> = ({
                       <div className="flex items-center gap-1.5">
                         <span>{job.companyName}</span>
                       </div>
-                      {(() => {
-                        const src = getSourceAttribution(job.source, job.sourceUrl);
-                        return (
-                          <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${src.colorClasses}`}>
-                            <span className={`w-1.5 h-1.5 rounded-full ${src.dotColor}`} />
-                            {src.label}
-                          </span>
-                        );
-                      })()}
+                      <div className="flex flex-wrap items-center gap-1">
+                        {(() => {
+                          const src = getSourceAttribution(job.source, job.sourceUrl);
+                          return (
+                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${src.colorClasses}`}>
+                              <span className={`w-1.5 h-1.5 rounded-full ${src.dotColor}`} />
+                              {src.label}
+                            </span>
+                          );
+                        })()}
+                        {(() => {
+                          const vStatus = job.verificationStatus || 'UNKNOWN';
+                          const verifiedDate = job.lastSuccessfulVerifiedAt || job.lastVerifiedAt;
+                          if (vStatus === 'VERIFIED') {
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200"
+                                title={`Verified active${verifiedDate ? ` on ${verifiedDate.slice(0, 10)}` : ''}`}
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                                Verified Active
+                              </span>
+                            );
+                          }
+                          if (vStatus === 'STALE') {
+                            return (
+                              <span
+                                className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-amber-50 text-amber-700 border border-amber-200"
+                                title="Posting flagged stale"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                Stale
+                              </span>
+                            );
+                          }
+                          return (
+                            <span
+                              className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium bg-slate-50 text-slate-600 border border-slate-200"
+                              title="Freshness unverified / pending probe"
+                            >
+                              <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                              Unverified
+                            </span>
+                          );
+                        })()}
+                      </div>
                       {(() => {
                         const ts = job.discoveredAt || (job as any).discovered_at || job.postedDate || (job as any).posted_date || '';
                         if (!ts) return null;
@@ -163,6 +200,18 @@ export const JobTable: React.FC<JobTableProps> = ({
                   {/* Actions */}
                   <td className="py-3.5 px-4 text-right whitespace-nowrap">
                     <div className="flex items-center justify-end gap-1.5">
+                      {job.applicationUrl && (
+                        <a
+                          href={job.applicationUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          title={`Open official vacancy (${job.atsType && job.atsType !== 'Unknown' ? job.atsType : 'Direct Link'})`}
+                          className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-blue-50 transition-colors"
+                        >
+                          <ExternalLink className="w-3.5 h-3.5" />
+                        </a>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"

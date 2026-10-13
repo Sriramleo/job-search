@@ -121,6 +121,54 @@ export const JobPreviewDrawer: React.FC<JobPreviewDrawerProps> = ({
             );
           })()}
         </div>
+        <div>
+          <span className="text-[#64748B] block text-[11px]">Freshness Verification</span>
+          {(() => {
+            const vStatus = job.verificationStatus || 'UNKNOWN';
+            const verifiedDate = job.lastSuccessfulVerifiedAt || job.lastVerifiedAt;
+            if (vStatus === 'VERIFIED') {
+              return (
+                <span
+                  className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 mt-0.5"
+                  title={`Authoritatively verified${verifiedDate ? ` on ${verifiedDate.slice(0, 10)}` : ''}`}
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  Verified Active {verifiedDate ? `(${verifiedDate.slice(0, 10)})` : ''}
+                </span>
+              );
+            }
+            if (vStatus === 'STALE') {
+              return (
+                <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-amber-50 text-amber-700 border border-amber-200 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                  Stale
+                </span>
+              );
+            }
+            return (
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-50 text-slate-600 border border-slate-200 mt-0.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-slate-400" />
+                Unverified Probe
+              </span>
+            );
+          })()}
+        </div>
+        <div>
+          <span className="text-[#64748B] block text-[11px]">Official Vacancy Link</span>
+          {job.applicationUrl ? (
+            <a
+              href={job.applicationUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 text-[11px] text-blue-600 hover:text-blue-800 font-medium mt-0.5 hover:underline"
+            >
+              <span>{job.atsType && job.atsType !== 'Unknown' ? `${job.atsType} Direct` : 'External Portal'}</span>
+              <ExternalLink className="w-3 h-3" />
+            </a>
+          ) : (
+            <span className="text-[11px] text-slate-400 mt-0.5 block">None listed</span>
+          )}
+        </div>
       </div>
 
       {/* Why This Matches Your Profile */}

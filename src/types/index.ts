@@ -132,6 +132,10 @@ export interface Job {
   jobUrl?: string;
   discoveredAt?: string;
   lastVerifiedAt?: string;
+  lastSuccessfulVerifiedAt?: string;
+  lastVerificationAttemptAt?: string;
+  lastVerificationOutcome?: string;
+  lastVerificationReason?: string;
   verificationStatus?: 'VERIFIED' | 'STALE' | 'UNKNOWN' | 'JOB_UNAVAILABLE';
   applicationType?: 'Company Careers / Internal' | 'External ATS' | 'External Job Board' | 'Unknown';
   keySkills: string[];

@@ -43,6 +43,7 @@ export const Jobs: React.FC = () => {
   const [minSalaryFilter, setMinSalaryFilter] = useState<number>(Number(searchParams.get('salary')) || 0);
   const [germanFilter, setGermanFilter] = useState(searchParams.get('german') || 'all');
   const [relocationFilter, setRelocationFilter] = useState<string>(searchParams.get('relocation') || 'all');
+  const [freshnessFilter, setFreshnessFilter] = useState<string>(searchParams.get('freshness') || 'all');
   const [sortField, setSortField] = useState<string>('latest');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
 
@@ -65,6 +66,7 @@ export const Jobs: React.FC = () => {
         minSalary: minSalaryFilter,
         germanRequirement: germanFilter,
         relocationStatus: relocationFilter as any,
+        freshness: freshnessFilter !== 'all' ? freshnessFilter : undefined,
         sortBy: sortField,
         sortDirection: sortDirection,
         limit: 500,
@@ -106,7 +108,7 @@ export const Jobs: React.FC = () => {
 
   useEffect(() => {
     loadJobs();
-  }, [searchQuery, locationFilter, seniorityFilter, minSalaryFilter, germanFilter, relocationFilter, sortField, sortDirection]);
+  }, [searchQuery, locationFilter, seniorityFilter, minSalaryFilter, germanFilter, relocationFilter, freshnessFilter, sortField, sortDirection]);
 
   // Handle saved search chips
   const handleSavedSearch = (name: string) => {
@@ -139,6 +141,7 @@ export const Jobs: React.FC = () => {
     setMinSalaryFilter(0);
     setGermanFilter('all');
     setRelocationFilter('all');
+    setFreshnessFilter('all');
     setCurrentPage(1);
   };
 
@@ -182,7 +185,7 @@ export const Jobs: React.FC = () => {
             setSearchQuery(val);
             setCurrentPage(1);
           }}
-          placeholder="Search across 42 jobs by title, company, technology (e.g. AWS, Kubernetes, Berlin, Zalando)..."
+          placeholder="Search across opportunities by title, company, technology (e.g. AWS, Kubernetes, Berlin, Zalando)..."
         />
 
         <FilterBar
@@ -225,43 +228,84 @@ export const Jobs: React.FC = () => {
         />
       ) : (
         <div className="space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 bg-slate-50 p-2.5 rounded-lg border border-[#E2E8F0] text-xs">
-            <div className="flex items-center gap-2">
-              <span className="text-[#64748B] font-medium">Sorted by:</span>
-              <div className="inline-flex rounded-md shadow-xs bg-white border border-[#E2E8F0] p-0.5">
-                <button
-                  onClick={() => handleSort('latest')}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                    sortField === 'latest'
-                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Latest (Default) {sortField === 'latest' && (sortDirection === 'desc' ? '↓' : '↑')}
-                </button>
-                <button
-                  onClick={() => handleSort('salaryMin')}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                    sortField === 'salaryMin'
-                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Salary {sortField === 'salaryMin' && (sortDirection === 'desc' ? '↓' : '↑')}
-                </button>
-                <button
-                  onClick={() => handleSort('title')}
-                  className={`px-2.5 py-1 rounded text-xs font-medium transition-colors ${
-                    sortField === 'title'
-                      ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  Role Title {sortField === 'title' && (sortDirection === 'desc' ? '↓' : '↑')}
-                </button>
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 bg-slate-50 p-2.5 rounded-lg border border-[#E2E8F0] text-xs">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Sort buttons */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#64748B] font-medium">Sort:</span>
+                <div className="inline-flex rounded-md shadow-xs bg-white border border-[#E2E8F0] p-0.5">
+                  <button
+                    onClick={() => handleSort('latest')}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      sortField === 'latest'
+                        ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Latest {sortField === 'latest' && (sortDirection === 'desc' ? '↓' : '↑')}
+                  </button>
+                  <button
+                    onClick={() => handleSort('salaryMin')}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      sortField === 'salaryMin'
+                        ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Salary {sortField === 'salaryMin' && (sortDirection === 'desc' ? '↓' : '↑')}
+                  </button>
+                  <button
+                    onClick={() => handleSort('title')}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      sortField === 'title'
+                        ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Title {sortField === 'title' && (sortDirection === 'desc' ? '↓' : '↑')}
+                  </button>
+                </div>
+              </div>
+
+              {/* Freshness filter pills */}
+              <div className="flex items-center gap-1.5">
+                <span className="text-[#64748B] font-medium">Freshness:</span>
+                <div className="inline-flex rounded-md shadow-xs bg-white border border-[#E2E8F0] p-0.5">
+                  <button
+                    onClick={() => { setFreshnessFilter('all'); setCurrentPage(1); }}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      freshnessFilter === 'all'
+                        ? 'bg-slate-100 text-slate-800 font-semibold border border-slate-300'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    All
+                  </button>
+                  <button
+                    onClick={() => { setFreshnessFilter('VERIFIED'); setCurrentPage(1); }}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      freshnessFilter === 'VERIFIED'
+                        ? 'bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Verified Active
+                  </button>
+                  <button
+                    onClick={() => { setFreshnessFilter('UNKNOWN'); setCurrentPage(1); }}
+                    className={`px-2 py-0.5 rounded text-xs font-medium transition-colors ${
+                      freshnessFilter === 'UNKNOWN'
+                        ? 'bg-blue-50 text-blue-700 font-semibold border border-blue-200'
+                        : 'text-slate-600 hover:text-slate-900'
+                    }`}
+                  >
+                    Unverified
+                  </button>
+                </div>
               </div>
             </div>
-            <span className="text-slate-500 text-[11px] font-medium">
+
+            <span className="text-slate-500 text-[11px] font-medium whitespace-nowrap">
               {jobs.length} opportunities loaded (Newest-first default)
             </span>
           </div>
