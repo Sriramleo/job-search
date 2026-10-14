@@ -859,5 +859,76 @@ export interface OutcomeSyncResult {
   syncedAt: string;
 }
 
+// ==========================================
+// Phase 044: Recruiter Outreach Agent Types
+// ==========================================
+
+export type OutreachContactStatus =
+  | 'Researched'
+  | 'Needs Review'
+  | 'Draft Ready'
+  | 'Approved'
+  | 'Sent'
+  | 'Replied'
+  | 'Opted Out'
+  | 'Suppressed';
+
+export type OutreachChannel = 'Email' | 'LinkedIn';
+
+export interface OutreachEvidence {
+  sourceUrl: string;
+  sourceType: string;
+  confidence: 'HIGH' | 'MEDIUM' | 'LOW';
+  confidenceReason: string;
+  verifiedAt: string;
+}
+
+export interface OutreachDraft {
+  subject: string;
+  salutation: string;
+  body: string;
+  groundedProofPoints: string[];
+  callToAction: string;
+  signOff: string;
+  generatedAt: string;
+}
+
+export interface OutreachQueueItem {
+  id: string;
+  contactId?: string;
+  contactName: string;
+  contactRole: string;
+  companyId: string;
+  companyName: string;
+  targetJobId: string;
+  targetJobTitle: string;
+  email?: string | null;
+  linkedInUrl?: string | null;
+  channel: OutreachChannel;
+  status: OutreachContactStatus;
+  evidence: OutreachEvidence;
+  draft?: OutreachDraft | null;
+  createdAt: string;
+  updatedAt: string;
+  approvedAt?: string | null;
+  approvedBy?: string | null;
+  suppressionReason?: string | null;
+}
+
+export interface SuppressionRecord {
+  id: string;
+  targetType: 'email' | 'domain' | 'contact_id';
+  targetValue: string;
+  reason: string;
+  createdAt: string;
+}
+
+export interface OutreachConfig {
+  dailyLimit: number;
+  companyCooldownDays: number;
+  deliveryEnabled: boolean;
+  requireHumanApproval: boolean;
+}
+
 
 
