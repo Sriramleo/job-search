@@ -14,6 +14,7 @@ import {
   SearchCode,
   BarChart3,
   Mail,
+  Send,
   Settings,
   Cpu,
   ShieldCheck,
@@ -61,6 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ isMobileOpen, onCloseMobile })
       items: [
         { label: 'Applications', path: '/applications', icon: Layers, count: counts?.applications },
         { label: 'Application Workspace', path: '/workspace', icon: FileCode2, badge: 'Active' },
+        { label: 'Outreach', path: '/outreach', icon: Send, badge: 'Draft Only' },
         { label: 'Documents', path: '/documents', icon: FileText, count: counts?.documents },
         { label: 'Interviews', path: '/interviews', icon: CalendarCheck2, count: counts?.interviews },
         { label: 'Tasks', path: '/tasks', icon: CheckSquare, count: counts?.tasks },

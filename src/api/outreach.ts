@@ -2,7 +2,10 @@ import { apiClient } from './client';
 import {
   OutreachQueueItem,
   OutreachConfig,
+  OutreachDraftUpdate,
+  OutreachGenerateRequest,
   SuppressionRecord,
+  DailyQuotaLease,
 } from '../types';
 
 export interface OutreachQueueFilterParams {
@@ -28,6 +31,14 @@ export const outreachApi = {
     return await apiClient.get<OutreachQueueItem>(`/outreach/queue/${id}`);
   },
 
+  async updateDraft(id: string, payload: OutreachDraftUpdate): Promise<OutreachQueueItem> {
+    return await apiClient.put<OutreachQueueItem>(`/outreach/queue/${id}`, payload);
+  },
+
+  async generateDraft(payload: OutreachGenerateRequest): Promise<OutreachQueueItem> {
+    return await apiClient.post<OutreachQueueItem>('/outreach/generate', payload);
+  },
+
   async approveDraft(id: string): Promise<OutreachQueueItem> {
     return await apiClient.post<OutreachQueueItem>(`/outreach/queue/${id}/approve`);
   },
@@ -36,6 +47,10 @@ export const outreachApi = {
     return await apiClient.post<OutreachQueueItem>(`/outreach/queue/${id}/reject`, undefined, {
       params: { reason },
     });
+  },
+
+  async getQuotaLease(): Promise<DailyQuotaLease> {
+    return await apiClient.get<DailyQuotaLease>('/outreach/lease');
   },
 
   async getConfig(): Promise<OutreachConfig> {
@@ -48,7 +63,11 @@ export const outreachApi = {
     });
   },
 
-  async addSuppression(targetType: 'email' | 'domain' | 'contact_id', targetValue: string, reason: string = 'User opt-out'): Promise<SuppressionRecord> {
+  async addSuppression(
+    targetType: 'email' | 'domain' | 'contact_id',
+    targetValue: string,
+    reason: string = 'User opt-out'
+  ): Promise<SuppressionRecord> {
     return await apiClient.post<SuppressionRecord>('/outreach/suppressions', {
       targetType,
       targetValue,

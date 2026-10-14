@@ -12,6 +12,7 @@ import { ApplicationWorkspace } from './pages/ApplicationWorkspace';
 import { Companies } from './pages/Companies';
 import { CompanyDetail } from './pages/CompanyDetail';
 import { Contacts } from './pages/Contacts';
+import { Outreach } from './pages/Outreach';
 import { Documents } from './pages/Documents';
 import { Interviews } from './pages/Interviews';
 import { Tasks } from './pages/Tasks';
@@ -53,6 +54,7 @@ export const App: React.FC = () => {
             <Route path="companies/:id" element={<CompanyDetail />} />
 
             <Route path="contacts" element={<Contacts />} />
+            <Route path="outreach" element={<Outreach />} />
             <Route path="documents" element={<Documents />} />
             <Route path="interviews" element={<Interviews />} />
             <Route path="tasks" element={<Tasks />} />

@@ -891,6 +891,36 @@ export interface OutreachDraft {
   callToAction: string;
   signOff: string;
   generatedAt: string;
+  editedAt?: string | null;
+  editedBy?: string | null;
+  userNotes?: string | null;
+}
+
+export interface OutreachDraftUpdate {
+  subject?: string;
+  salutation?: string;
+  body?: string;
+  callToAction?: string;
+  userNotes?: string;
+}
+
+export interface OutreachGenerateRequest {
+  jobId: string;
+  contactName?: string;
+  contactRole?: string;
+  companyName?: string;
+  sourceUrl?: string;
+  email?: string;
+  linkedInUrl?: string;
+  sourceType?: string;
+}
+
+export interface DailyQuotaLease {
+  date: string;
+  draftsReserved: number;
+  dailyCap: number;
+  remainingCapacity: number;
+  isExhausted: boolean;
 }
 
 export interface OutreachQueueItem {
@@ -913,6 +943,7 @@ export interface OutreachQueueItem {
   approvedAt?: string | null;
   approvedBy?: string | null;
   suppressionReason?: string | null;
+  idempotencyKey?: string | null;
 }
 
 export interface SuppressionRecord {
@@ -926,6 +957,12 @@ export interface SuppressionRecord {
 export interface OutreachConfig {
   dailyLimit: number;
   companyCooldownDays: number;
+  contactCooldownDays?: number;
+  timezone?: string;
+  businessHoursStart?: number;
+  businessHoursEnd?: number;
+  emergencyStop?: boolean;
+  complianceGateApproved?: boolean;
   deliveryEnabled: boolean;
   requireHumanApproval: boolean;
 }
