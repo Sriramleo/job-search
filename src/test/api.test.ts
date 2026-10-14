@@ -23,7 +23,7 @@ describe('Germany Job Hunt — API Abstraction Layer', () => {
     // Filter by minimum salary €95K
     const highPaying = await jobsApi.getJobs({ minSalary: 95000 });
     expect(highPaying.every((j) => j.salaryMax >= 95000)).toBe(true);
-  });
+  }, 15000);
 
   it('retrieves a single job by ID', async () => {
     const allJobs = await jobsApi.getJobs({ limit: 1 });

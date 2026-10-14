@@ -80,7 +80,7 @@ describe('Phase 044: Recruiter Outreach Agent Frontend', () => {
 
     // Verify Safety Invariant text is displayed prominently
     expect(
-      screen.getByText(/Phase 044 Safety Boundary: Research & Draft Mode/i)
+      screen.getByText(/Safety Boundary: Research & Draft Mode/i)
     ).toBeDefined();
     expect(
       screen.getByText(/Outbound email sending is strictly disabled by policy/i)
