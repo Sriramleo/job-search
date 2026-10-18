@@ -2,8 +2,7 @@
 
 **Date:** 2026-10-18  
 **Author:** Antigravity Agent  
-**Repository:** `job-search-api` & `job-search`  
-**Status:** COMPLETE (Stage A: Dry Run Verified & Committed; Stage B: Ingestion Disabled by Default Feature Flag)
+**Status:** COMPLETE (Stage A: Dry Run Verified; Stage B: Bounded Ingestion Executed & Verified in Live Database)
 
 ---
 
@@ -202,10 +201,28 @@ Per project directives and `job-search/feature/052.md`:
 
 ---
 
-## 7. Next Steps for Stage B (Controlled Ingestion)
-
-When authorized by operator review:
-1. Temporarily toggle `FREEHIRE_ENABLED: bool = True` in runtime environment or via discovery run trigger.
-2. Trigger a single bounded discovery batch via `/api/discovery/jobs/run` specifying `sources: ["freehire"]`.
-3. Ingest the 12 verified direct-ATS candidates into the MongoDB `discovered_jobs` collection.
-4. Review deduplication and UI presentation in the Active Opportunities dashboard.
+## 7. Stage B Bounded Ingestion Execution & Live Verification
+ 
+On 2026-10-18, operator authorized one bounded Stage B ingestion batch using `feature/052_final_proposed_manifest.json` at commit `6fec3a2` (max 7 records) targeting `discovered_jobs` collection only:
+ 
+1. **Pre-Write Deduplication & Fail-Closed Abort:**
+   - Attempt 1 submitted 7 candidates. The API intercepted a duplicate fingerprint for SumUp (`2c8cba76b9c1bc22`) in `discovered_jobs` and aborted the entire batch fail-closed with `HTTP 409 Conflict` (0 records inserted).
+2. **Net-New Bounded Ingestion:**
+   - Attempt 2 submitted the 6 confirmed net-new candidates. All 6 passed validation, commit check, ATS allowlist, and Germany geography checks.
+   - `HTTP 201 Created` with `inserted_count: 6`.
+3. **Live Database Verification:**
+   - Queried `GET /api/discovery/jobs?source_name=FreeHire` on production cluster.
+   - All 6 inserted records confirmed active in MongoDB Atlas:
+     - `job_disc_1eaf849f107e` — **Platform.sh** (`FreeHire (Greenhouse)`)
+     - `job_disc_0488fa97c619` — **Talon.One** (`FreeHire (Greenhouse)`)
+     - `job_disc_e1dcb68ac0d1` — **imfusion** (`FreeHire (Personio)`)
+     - `job_disc_d010ad7c496e` — **cubic** (`FreeHire (Workday)`)
+     - `job_disc_d9dde433c3bc` — **ABOUTYOUGmbH** (`FreeHire (SmartRecruiters)`)
+     - `job_disc_d253be3aad2c` — **Orcrist Technologies** (`FreeHire (Greenhouse)`)
+4. **Safety Controls Preserved:**
+   - `FREEHIRE_ENABLED: bool = False` remains in effect for background polling.
+   - Auto-apply remained in `STAGE_0_DRY_RUN` (`is_enabled: false`).
+   - Outbound recruiter emails hard-disabled (`403 Forbidden`).
+   - Zero application submissions or recruiter contacts made.
+ 
+See full execution details and per-record audit in [052_stage_b_ingestion_report.md](file:///Users/sriram/Documents/AI-Project/job-search/feature/052_stage_b_ingestion_report.md) and [052_stage_b_execution_audit.json](file:///Users/sriram/Documents/AI-Project/job-search/feature/052_stage_b_execution_audit.json).

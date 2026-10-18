@@ -1,0 +1,424 @@
+{
+  "execution_timestamp": "2026-10-18T14:53:39.536661+00:00",
+  "authorized_manifest_commit": "6fec3a2",
+  "batch_limit_enforced": 7,
+  "actual_inserted_count": 6,
+  "inserted_ids": [
+    "job_disc_1eaf849f107e",
+    "job_disc_0488fa97c619",
+    "job_disc_e1dcb68ac0d1",
+    "job_disc_d010ad7c496e",
+    "job_disc_d9dde433c3bc",
+    "job_disc_d253be3aad2c"
+  ],
+  "verified_in_live_database_count": 50,
+  "verified_records": [
+    {
+      "id": "job_disc_e1dcb68ac0d1",
+      "company": "imfusion",
+      "title": "(Senior) DevOps Engineer",
+      "application_url": "https://imfusion.jobs.personio.com/job/2844152",
+      "source_name": "FreeHire (Personio)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_d9dde433c3bc",
+      "company": "ABOUTYOUGmbH",
+      "title": "Senior PHP Engineer - Checkout - Pre-Confirmation",
+      "application_url": "https://jobs.smartrecruiters.com/ABOUTYOUGmbH/744000155066379-senior-php-engineer-checkout-pre-confirmation-all-genders-",
+      "source_name": "FreeHire (SmartRecruiters)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_d253be3aad2c",
+      "company": "Orcrist Technologies",
+      "title": "Infrastructure/Systems Engineer",
+      "application_url": "https://job-boards.eu.greenhouse.io/orcristtechnologies/jobs/4901103101",
+      "source_name": "FreeHire (Greenhouse)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_d010ad7c496e",
+      "company": "cubic",
+      "title": "Senior DevOps Engineer",
+      "application_url": "https://cubic.wd1.myworkdayjobs.com/cubic_global_careers/job/Hamburg/Senior-DevOps-Engineer_REQ_50236",
+      "source_name": "FreeHire (Workday)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_1eaf849f107e",
+      "company": "Platform.sh",
+      "title": "Senior Software Engineer",
+      "application_url": "https://upsun.com/jobs/?gh_jid=8845093002",
+      "source_name": "FreeHire (Greenhouse)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_0488fa97c619",
+      "company": "Talon.One",
+      "title": "Senior DevOps Engineer",
+      "application_url": "https://www.talon.one/job-listing?gh_jid=4911728101",
+      "source_name": "FreeHire (Greenhouse)",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_ff51db8ac3f3",
+      "company": "Mlabs",
+      "title": "Founding Platform Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_63127f1ec0ba",
+      "company": "Quandela",
+      "title": "Cloud DevOps Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_18aa53764fbb",
+      "company": "Affirm",
+      "title": "Software Engineer II, Fullstack (International)",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_0a0d184c1877",
+      "company": "Tracium GmbH",
+      "title": "Full-Stack Engineer \u2014 AI Authoring Platform",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_e6e1c52ee35c",
+      "company": "Statista",
+      "title": "Data Engineer - Data Platform & Ontology",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_56e2c1b2d78c",
+      "company": "Wypoon",
+      "title": "AI Platform Engineer \u2013 Azure & AI Infrastructure (Relocation Provided)",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_db9c8abf16a6",
+      "company": "Wypoon",
+      "title": "Azure Devops Engineer (Relocation Provided)",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_5edafb0b334c",
+      "company": "Wypoon",
+      "title": "SecDevOps Engineer \u2013 Infrastructure Automation (Candidates Based in the Netherlands)",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_0c0141cb1399",
+      "company": "gitlab",
+      "title": "Staff Backend Engineer, Developer Experience",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_a8ac2e35b96e",
+      "company": "virtual7 GmbH N\u00fcrnberg",
+      "title": "Senior DevSecOps Engineer",
+      "application_url": null,
+      "source_name": "XING Jobs",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_8a494956b5ca",
+      "company": "Tesla Germany GmbH",
+      "title": "Failure Analysis Engineer, Electrical Berlin, Germany",
+      "application_url": null,
+      "source_name": "Bundesagentur f\u00fcr Arbeit",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_27fd890751d4",
+      "company": "Tesla Germany GmbH",
+      "title": "Lead Failure Analysis Engineer, Mechanical / Mechatronics Berlin, Germany",
+      "application_url": null,
+      "source_name": "Bundesagentur f\u00fcr Arbeit",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_ce4f424a226e",
+      "company": "BWI GmbH",
+      "title": "Senior Software Engineer",
+      "application_url": null,
+      "source_name": "Bundesagentur f\u00fcr Arbeit",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_2bf380f39c7d",
+      "company": "HelloFresh",
+      "title": "Senior Price & Discount Strategy Manager",
+      "application_url": "https://careers.hellofresh.com/global/en/job/8168946?gh_jid=8168946",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_c438062f3a8a",
+      "company": "HelloFresh",
+      "title": "Senior Group Marketing Controller",
+      "application_url": "https://careers.hellofresh.com/global/en/job/8210895?gh_jid=8210895",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_d84bfcac2ef7",
+      "company": "HelloFresh",
+      "title": "Junior Category Manager",
+      "application_url": "https://careers.hellofresh.com/global/en/job/8276110?gh_jid=8276110",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_0b3dc773af3f",
+      "company": "HelloFresh",
+      "title": "[DACH MAG] Senior Workforce Capacity Planner",
+      "application_url": "https://careers.hellofresh.com/global/en/job/8288513?gh_jid=8288513",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_394f04cec157",
+      "company": "Grover",
+      "title": "(Sr.) Legal/Commercial Counsel (C1+ German)",
+      "application_url": "https://job-boards.greenhouse.io/grover/jobs/8034382003",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_21624a4a2cbf",
+      "company": "Grover",
+      "title": "Sr. Data Engineer",
+      "application_url": "https://job-boards.greenhouse.io/grover/jobs/8034518003",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_5f16c3e73c67",
+      "company": "Grover",
+      "title": "B2B Key Account Manager (C1+ German)",
+      "application_url": "https://job-boards.greenhouse.io/grover/jobs/8035576003",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_07edaadd9293",
+      "company": "Grover",
+      "title": "B2B Key Account Manager (C1+ Deutsch)",
+      "application_url": "https://job-boards.greenhouse.io/grover/jobs/8035639003",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_088c4fa30b00",
+      "company": "Flix",
+      "title": "Werkstudent Operational Planning",
+      "application_url": "https://flix.careers/job/8874507002?gh_jid=8874507002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_afe17e470921",
+      "company": "Flix",
+      "title": "Werkstudent Betriebsplanung",
+      "application_url": "https://flix.careers/job/8894028002?gh_jid=8894028002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_59a97ff989ce",
+      "company": "Flix",
+      "title": "Senior Product Owner",
+      "application_url": "https://flix.careers/job/8829821002?gh_jid=8829821002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_bd42b46d647f",
+      "company": "Flix",
+      "title": "Senior Offline Sales Manager",
+      "application_url": "https://flix.careers/job/8893980002?gh_jid=8893980002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_9257e8b3ce3c",
+      "company": "Flix",
+      "title": "Senior Inbound Sales Manager",
+      "application_url": "https://flix.careers/job/8893972002?gh_jid=8893972002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_4c2dc3c93fc7",
+      "company": "N26",
+      "title": "Senior Lifecycle Specialist",
+      "application_url": "https://n26.com/en-eu/careers/positions/8187986?gh_jid=8187986",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_4f86f687075f",
+      "company": "N26",
+      "title": "Senior CRM Specialist",
+      "application_url": "https://n26.com/en-eu/careers/positions/8034981?gh_jid=8034981",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_90234c145869",
+      "company": "SumUp",
+      "title": "Affiliate Marketing Intern",
+      "application_url": "https://sumup.com/careers/positions/8764703002?gh_jid=8764703002",
+      "source_name": "Greenhouse Direct",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_a68fb8813977",
+      "company": "Mollie",
+      "title": "Machine Learning Platform Engineer I",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_96f12b7e1aca",
+      "company": "SwissPeak Partners GmbH",
+      "title": "Cloud and Platform Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_160a5fc897b2",
+      "company": "SwissPeak Partners GmbH",
+      "title": "Senior Network Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_a06917eed88f",
+      "company": "SwissPeak Partners GmbH",
+      "title": "IT Solution Architect",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_ec1f22abda58",
+      "company": "SwissPeak Partners GmbH",
+      "title": "System Engineer - Cloud, Network & Security",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_c17de5c2a7b6",
+      "company": "SwissPeak Partners GmbH",
+      "title": "IoT Embedded Systems Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_85a049709994",
+      "company": "Adaptyv",
+      "title": "DNA Synthesis Platform Engineer",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_af1ebedfa645",
+      "company": "DeepHealth",
+      "title": "Senior Machine Learning Engineer, ML Platform",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_b2c55b2b667c",
+      "company": "think about IT GmbH",
+      "title": "Senior Azure Cloud Platform Architect",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_0f7ec1561f7a",
+      "company": "CPU Consulting & Software GmbH",
+      "title": "Platform Engineer - GitLab & Automation",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_8bde343a2687",
+      "company": "Apaleo",
+      "title": "Senior Backend Engineer, Platform",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_9694fa3b9c0f",
+      "company": "momox",
+      "title": "Engineering Manager Platform",
+      "application_url": null,
+      "source_name": "Honeypot / Germany Tech",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_434d5e78f099",
+      "company": "Redcare Pharmacy",
+      "title": "Senior Platform Engineer",
+      "application_url": null,
+      "source_name": "XING Jobs",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_4501c2513703",
+      "company": "Statista",
+      "title": "Engineering Manager - Data Platform",
+      "application_url": null,
+      "source_name": "XING Jobs",
+      "confirmed_in_live_db": true
+    },
+    {
+      "id": "job_disc_6e9e60ad5de3",
+      "company": "BWI GmbH",
+      "title": "Senior DevOps Engineer \u2013 DevSecOps",
+      "application_url": null,
+      "source_name": "XING Jobs",
+      "confirmed_in_live_db": true
+    }
+  ],
+  "safety_invariants_preserved": {
+    "freehire_enabled_background_polling": false,
+    "auto_apply_enabled": false,
+    "recruiter_emails_sent": 0,
+    "historical_records_deleted": 0,
+    "historical_records_overwritten": 0
+  }
+}
