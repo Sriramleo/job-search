@@ -1,0 +1,391 @@
+{
+  "provider": "FreeHire",
+  "endpoint": "https://freehire.me/api/v1/jobs/search",
+  "generated_at": "2026-10-18T14:07:18Z",
+  "total_evaluated_in_sample": 294,
+  "net_new_opportunities": 289,
+  "net_new_direct_ats_count": 71,
+  "net_new_senior_direct_ats_count": 43,
+  "recommended_ingestion_candidates": [
+    {
+      "freehire_slug": "senior-it-systems-engineer-remote-woman-yuwp53ro",
+      "title": "Senior IT Systems Engineer",
+      "company": "Remote Woman",
+      "location": "Remote \u2022 Canada",
+      "work_mode": "remote",
+      "source": "greenhouse",
+      "is_direct_ats": true,
+      "url": "https://job-boards.greenhouse.io/remotewoman/jobs/8895524002?utm_source=freehire.me",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "authentication",
+        "automation",
+        "cloud",
+        "devops",
+        "iso-27001",
+        "linux",
+        "macos",
+        "mdm",
+        "n8n",
+        "observability",
+        "okta",
+        "python",
+        "saas",
+        "soc-2",
+        "webhooks"
+      ],
+      "seniority": "senior",
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": null,
+      "posted_at": "2026-10-16T19:32:20Z",
+      "language": "en"
+    },
+    {
+      "freehire_slug": "senior-it-systems-engineer-platform-sh-dolruzpr",
+      "title": "Senior IT Systems Engineer",
+      "company": "Platform.sh",
+      "location": "Remote \u2022 Canada",
+      "work_mode": "remote",
+      "source": "greenhouse",
+      "is_direct_ats": true,
+      "url": "https://platform.sh/company/careers/job?gh_jid=8894326002&utm_source=freehire.me",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "authentication",
+        "automation",
+        "cloud",
+        "devops",
+        "iso-27001",
+        "linux",
+        "macos",
+        "mdm",
+        "n8n",
+        "observability",
+        "okta",
+        "python",
+        "saas",
+        "soc-2",
+        "webhooks"
+      ],
+      "seniority": "senior",
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": null,
+      "posted_at": "2026-10-16T19:32:18Z",
+      "language": "en"
+    },
+    {
+      "freehire_slug": "senior-devops-platform-engineer-secure-infrastructure-f-m-d-liveeo-gmbh-aiyxaxwx",
+      "title": "Senior DevOps / Platform Engineer - Secure Infrastructure (f/m/d)",
+      "company": "liveeo-gmbh",
+      "location": "LiveEO GmbH Berlin Office (Hybrid)",
+      "work_mode": "hybrid",
+      "source": "personio",
+      "is_direct_ats": true,
+      "url": "https://liveeo-gmbh.jobs.personio.com/job/2844874?utm_source=freehire.me",
+      "skills": [
+        "ansible",
+        "aurora",
+        "automation",
+        "aws",
+        "bash",
+        "ci-cd",
+        "cloud",
+        "devops",
+        "docker",
+        "ec2",
+        "eks",
+        "firewall",
+        "gitlab",
+        "grafana",
+        "iam",
+        "infrastructure-as-code",
+        "iso-27001",
+        "kubernetes",
+        "linux",
+        "machine-learning",
+        "networking",
+        "observability",
+        "openstack",
+        "postgresql",
+        "prefect",
+        "prometheus",
+        "python",
+        "s3",
+        "secrets-management",
+        "sso",
+        "tcp-ip",
+        "terraform",
+        "vpc",
+        "workflow-orchestration"
+      ],
+      "seniority": "senior",
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": null,
+      "posted_at": "2026-10-15T14:47:34Z",
+      "language": "en"
+    },
+    {
+      "freehire_slug": "senior-software-engineer-platform-sh-6r2n65ib",
+      "title": "Senior Software Engineer",
+      "company": "Platform.sh",
+      "location": "Remote \u00b7 UK, France, Spain, Germany or Canada",
+      "work_mode": "remote",
+      "source": "greenhouse",
+      "is_direct_ats": true,
+      "url": "https://platform.sh/company/careers/job?gh_jid=8845093002&utm_source=freehire.me",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "cloud",
+        "data-modeling",
+        "devops",
+        "distributed-systems",
+        "ecommerce",
+        "event-driven-architecture",
+        "mariadb",
+        "mysql",
+        "observability",
+        "postgresql"
+      ],
+      "seniority": "senior",
+      "salary_min": null,
+      "salary_max": null,
+      "salary_currency": null,
+      "posted_at": "2026-10-15T14:40:00Z",
+      "language": "en"
+    },
+    {
+      "title": "Senior IT Systems Engineer",
+      "company": "Remote Woman",
+      "source": "greenhouse",
+      "url": "https://job-boards.greenhouse.io/remotewoman/jobs/8895524002?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-it-systems-engineer-remote-woman-yuwp53ro",
+      "location": "Remote \u2022 Canada",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "authentication",
+        "automation"
+      ]
+    },
+    {
+      "title": "Senior IT Systems Engineer",
+      "company": "Platform.sh",
+      "source": "greenhouse",
+      "url": "https://platform.sh/company/careers/job?gh_jid=8894326002&utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-it-systems-engineer-platform-sh-dolruzpr",
+      "location": "Remote \u2022 Canada",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "authentication",
+        "automation"
+      ]
+    },
+    {
+      "title": "Senior DevOps / Platform Engineer - Secure Infrastructure (f/m/d)",
+      "company": "liveeo-gmbh",
+      "source": "personio",
+      "url": "https://liveeo-gmbh.jobs.personio.com/job/2844874?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-devops-platform-engineer-secure-infrastructure-f-m-d-liveeo-gmbh-aiyxaxwx",
+      "location": "LiveEO GmbH Berlin Office (Hybrid)",
+      "skills": [
+        "ansible",
+        "aurora",
+        "automation",
+        "aws",
+        "bash"
+      ]
+    },
+    {
+      "title": "Senior Software Engineer",
+      "company": "Platform.sh",
+      "source": "greenhouse",
+      "url": "https://platform.sh/company/careers/job?gh_jid=8845093002&utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-software-engineer-platform-sh-6r2n65ib",
+      "location": "Remote \u00b7 UK, France, Spain, Germany or Canada",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "cloud",
+        "data-modeling"
+      ]
+    },
+    {
+      "title": "Senior Backend Engineer, Platform",
+      "company": "Apaleo",
+      "source": "greenhouse",
+      "url": "https://job-boards.greenhouse.io/apaleo/jobs/8034435003?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-backend-engineer-platform-apaleo-cmemegdt",
+      "location": "Munich / Remote",
+      "skills": [
+        "agentic-ai",
+        "ai",
+        "api",
+        "automation",
+        "aws"
+      ]
+    },
+    {
+      "title": "Senior DevOps Engineer",
+      "company": "Talon.One LinkedIn Jobs",
+      "source": "greenhouse",
+      "url": "https://job-boards.eu.greenhouse.io/linkedinjobs/jobs/4911811101?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/devops-engineer-mid-senior-talon-one-linkedin-jobs-yo7j35hm",
+      "location": "Berlin",
+      "skills": [
+        "api",
+        "argocd",
+        "automation",
+        "bash",
+        "bigquery"
+      ]
+    },
+    {
+      "title": "Senior DevOps Engineer ",
+      "company": "Talon.One",
+      "source": "greenhouse",
+      "url": "https://www.talon.one/job-listing?gh_jid=4911728101&utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/devops-engineer-mid-senior-talon-one-ii6tshbv",
+      "location": "Berlin",
+      "skills": [
+        "api",
+        "argocd",
+        "automation",
+        "bash",
+        "bigquery"
+      ]
+    },
+    {
+      "title": "(Senior) DevOps Engineer",
+      "company": "imfusion",
+      "source": "personio",
+      "url": "https://imfusion.jobs.personio.com/job/2844152?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-devops-engineer-imfusion-tnuy7dyf",
+      "location": "Munich",
+      "skills": [
+        "ansible",
+        "automation",
+        "aws",
+        "azure",
+        "bash"
+      ]
+    },
+    {
+      "title": "Senior DevOps Engineer",
+      "company": "cubic",
+      "source": "workday",
+      "url": "https://cubic.wd1.myworkdayjobs.com/cubic_global_careers/job/Hamburg/Senior-DevOps-Engineer_REQ_50236?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-devops-engineer-cubic-7ulzj3bq",
+      "location": "Hamburg",
+      "skills": [
+        "agile",
+        "angular",
+        "automation",
+        "bash",
+        "ci-cd"
+      ]
+    },
+    {
+      "title": " Senior DevOps Engineer",
+      "company": "SumUp",
+      "source": "greenhouse",
+      "url": "https://sumup.com/careers/positions/8726158002?gh_jid=8726158002&utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-devops-engineer-sumup-nlrysww2",
+      "location": "Berlin, Germany",
+      "skills": [
+        "automation",
+        "aws",
+        "ci-cd",
+        "cloud",
+        "developer-experience"
+      ]
+    },
+    {
+      "title": "Senior PHP Engineer - Checkout - Pre-Confirmation (all genders)",
+      "company": "ABOUTYOUGmbH",
+      "source": "smartrecruiters",
+      "url": "https://jobs.smartrecruiters.com/ABOUTYOUGmbH/744000155066379-senior-php-engineer-checkout-pre-confirmation-all-genders-?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-php-engineer-checkout-pre-confirmation-all-genders-aboutyougmbh-24vpqhnq",
+      "location": "Hamburg, HH, de",
+      "skills": [
+        "api",
+        "api-design",
+        "aws",
+        "cloud",
+        "devops"
+      ]
+    },
+    {
+      "title": "Senior PHP Engineer - Checkout - Pre-Confirmation (all genders)",
+      "company": "ABOUTYOUGmbH",
+      "source": "smartrecruiters",
+      "url": "https://jobs.smartrecruiters.com/ABOUTYOUGmbH/744000155066262-senior-php-engineer-checkout-pre-confirmation-all-genders-?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-php-engineer-checkout-pre-confirmation-all-genders-aboutyougmbh-ujmgegkh",
+      "location": "Hamburg, HH, de",
+      "skills": [
+        "api",
+        "aws",
+        "ci-cd",
+        "cloud",
+        "containerization"
+      ]
+    },
+    {
+      "title": "Senior PHP/Laravel Developer with Infrastructure & DevOps Experience",
+      "company": "jobgether",
+      "source": "lever",
+      "url": "https://jobs.lever.co/jobgether/002984e7-fbd6-409b-8fe0-d4d11e4dd545?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/senior-php-laravel-developer-with-infrastructure-devops-experience-jobgether-7blwbpvc",
+      "location": "Ireland",
+      "skills": [
+        "ai",
+        "api",
+        "api-design",
+        "automation",
+        "ci-cd"
+      ]
+    },
+    {
+      "title": "Junior DevOps Engineer (m/w/d)",
+      "company": "Deutscher Sparkassen Verlag GmbH",
+      "source": "workday",
+      "url": "https://dsvgruppe.wd103.myworkdayjobs.com/DSV/job/Berlin/Junior-DevOps-Engineer--m-w-d-_JR101475?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/junior-devops-engineer-m-w-d-deutscher-sparkassen-verlag-gmbh-e7dpe4vk",
+      "location": "Berlin",
+      "skills": [
+        "ansible",
+        "ci-cd",
+        "devops",
+        "devsecops",
+        "docker"
+      ]
+    },
+    {
+      "title": "Infrastructure/Systems Engineer",
+      "company": "Orcrist Technologies",
+      "source": "greenhouse",
+      "url": "https://job-boards.eu.greenhouse.io/orcristtechnologies/jobs/4901103101?utm_source=freehire.me",
+      "freehire_url": "https://freehire.me/jobs/infrastructure-systems-engineer-orcrist-technologies-wxklnppy",
+      "location": "Hybrid / Berlin",
+      "skills": [
+        "ansible",
+        "automation",
+        "bash",
+        "bgp",
+        "ci-cd"
+      ]
+    }
+  ]
+}
