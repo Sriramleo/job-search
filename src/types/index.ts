@@ -333,6 +333,27 @@ export interface Application {
   outcomeEvidence?: string | null;
   timeline?: ApplicationTimelineEvent[];
   responseTimeMetrics?: ResponseTimeMetrics;
+  preFlight?: {
+    status: 'ready' | 'review_required' | 'blocked';
+    total: number;
+    passed: number;
+    warnings: string[];
+    blocked: boolean;
+    needsAttestation: number;
+    readyForSubmission: boolean;
+    canonicalState?: string;
+    checks: Array<{
+      key: string;
+      label: string;
+      passed: boolean;
+      status: string;
+      requiresAttestation: boolean;
+      details?: string;
+    }>;
+  };
+  canonicalState?: string;
+  approvedForSubmissionAt?: string;
+  approvedBy?: string;
 }
 
 export interface SubmissionResult {
@@ -913,6 +934,7 @@ export interface OutreachGenerateRequest {
   email?: string;
   linkedInUrl?: string;
   sourceType?: string;
+  language?: 'en' | 'de';
 }
 
 export interface DailyQuotaLease {
@@ -936,6 +958,9 @@ export interface OutreachQueueItem {
   linkedInUrl?: string | null;
   channel: OutreachChannel;
   status: OutreachContactStatus;
+  priorityScore?: number;
+  priorityReasons?: string[];
+  language?: 'en' | 'de';
   evidence: OutreachEvidence;
   draft?: OutreachDraft | null;
   createdAt: string;
@@ -944,6 +969,73 @@ export interface OutreachQueueItem {
   approvedBy?: string | null;
   suppressionReason?: string | null;
   idempotencyKey?: string | null;
+}
+
+export interface FollowUpRecommendation {
+  itemId?: string;
+  item_id?: string;
+  contactId?: string;
+  contactName?: string;
+  contact_name?: string;
+  companyName?: string;
+  company_name?: string;
+  targetJobTitle?: string;
+  target_job_title?: string;
+  priorityScore?: number;
+  priority_score?: number;
+  priorityReasons?: string[];
+  priority_reasons?: string[];
+  lastActionDate?: string;
+  daysSinceLastAction?: number;
+  daysSinceCreation?: number;
+  days_since_creation?: number;
+  recommendedAction?: string;
+  recommended_action?: string;
+  suggestedSubject?: string;
+  suggestedBody?: string;
+}
+
+export interface GCPTrialStatus {
+  totalCreditInr: number;
+  totalSpentInr: number;
+  totalSpentUsd: number;
+  remainingCreditInr: number;
+  expiryDate: string;
+  daysRemaining: number;
+  dailyBudgetAllowanceInr: number;
+  dailyBurnRateInr: number;
+  projectedSpendThroughExpiryInr: number;
+  isBudgetExceeded: boolean;
+  isRunawayDetected: boolean;
+}
+
+export interface AIWorkflowCost {
+  workflow: string;
+  invocations: number;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  costUsd: number;
+  costInr: number;
+  avgLatencyMs?: number;
+}
+
+export interface AITrialSummary {
+  provider: string;
+  primaryModel: string;
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+  totalInvocations: number;
+  successfulInvocations: number;
+  failedInvocations: number;
+  estimatedCostUsd: number;
+  estimatedCostInr: number;
+  usefulOpportunitiesCount: number;
+  costPerUsefulOpportunityInr: number;
+  trialStatus: GCPTrialStatus;
+  workflows: Record<string, AIWorkflowCost>;
+  costByModel: Record<string, number>;
 }
 
 export interface SuppressionRecord {

@@ -25,6 +25,7 @@ import {
   DailyQuotaLease,
   OutreachDraftUpdate,
   Job,
+  FollowUpRecommendation,
 } from '../types';
 import { PageHeader } from '../components/common/PageHeader';
 import { Tabs } from '../components/ui/Tabs';
@@ -41,6 +42,7 @@ export const Outreach: React.FC = () => {
   const [lease, setLease] = useState<DailyQuotaLease | null>(null);
   const [suppressions, setSuppressions] = useState<SuppressionRecord[]>([]);
   const [activeJobs, setActiveJobs] = useState<Job[]>([]);
+  const [recommendations, setRecommendations] = useState<FollowUpRecommendation[]>([]);
   const [activeTab, setActiveTab] = useState<string>('all');
   const [channelFilter, setChannelFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -51,6 +53,7 @@ export const Outreach: React.FC = () => {
   const [genContactName, setGenContactName] = useState('');
   const [genContactRole, setGenContactRole] = useState('');
   const [genEmail, setGenEmail] = useState('');
+  const [genLanguage, setGenLanguage] = useState<'en' | 'de'>('en');
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [errorBanner, setErrorBanner] = useState<string | null>(null);
@@ -58,18 +61,20 @@ export const Outreach: React.FC = () => {
   const fetchAll = async () => {
     try {
       setErrorBanner(null);
-      const [queueData, configData, leaseData, suppData, jobsData] = await Promise.all([
+      const [queueData, configData, leaseData, suppData, jobsData, recsData] = await Promise.all([
         outreachApi.getQueue().catch(() => []),
         outreachApi.getConfig().catch(() => null),
         outreachApi.getQuotaLease().catch(() => null),
         outreachApi.getSuppressions().catch(() => []),
         jobsApi.getJobs({ limit: 50 }).catch(() => []),
+        outreachApi.getRecommendations().catch(() => []),
       ]);
       setItems(queueData);
       setConfig(configData);
       setLease(leaseData);
       setSuppressions(suppData);
       setActiveJobs(Array.isArray(jobsData) ? jobsData : []);
+      setRecommendations(recsData || []);
     } catch (err: any) {
       setErrorBanner(err.message || 'Failed fetching outreach data');
     } finally {
@@ -127,6 +132,7 @@ export const Outreach: React.FC = () => {
         contactName: genContactName || undefined,
         contactRole: genContactRole || undefined,
         email: genEmail || undefined,
+        language: genLanguage,
       });
       setItems((prev) => [created, ...prev]);
       setSelectedItem(created);
@@ -134,6 +140,7 @@ export const Outreach: React.FC = () => {
       setGenContactName('');
       setGenContactRole('');
       setGenEmail('');
+      setGenLanguage('en');
       const leaseData = await outreachApi.getQuotaLease();
       setLease(leaseData);
     } catch (err: any) {
@@ -260,6 +267,71 @@ export const Outreach: React.FC = () => {
         </div>
       </div>
 
+      {/* Follow-Up Action Queue (Aging 7+ Days) */}
+      {recommendations.length > 0 && (
+        <div className="p-4 bg-amber-50/70 border border-amber-200 rounded-xl space-y-3 shadow-2xs">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-600" />
+              <h4 className="text-xs font-bold text-amber-950 uppercase tracking-wider">
+                Follow-Up Action Queue ({recommendations.length} Contact{recommendations.length > 1 ? 's' : ''} Ready)
+              </h4>
+            </div>
+            <span className="text-[11px] font-mono text-amber-800 bg-amber-200/60 px-2 py-0.5 rounded-full font-semibold">
+              7+ Days Since Outreach Prep
+            </span>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            {recommendations.map((rec, idx) => {
+              const recId = rec.itemId || rec.item_id || `rec-${idx}`;
+              const contactName = rec.contactName || rec.contact_name || 'Contact';
+              const companyName = rec.companyName || rec.company_name || '';
+              const score = rec.priorityScore ?? rec.priority_score ?? 0;
+              const role = rec.targetJobTitle || rec.target_job_title || '';
+              const action = rec.recommendedAction || rec.recommended_action || 'Review follow-up';
+              const days = rec.daysSinceCreation ?? rec.days_since_creation ?? 0;
+              const reasons = rec.priorityReasons || rec.priority_reasons || [];
+              return (
+                <div
+                  key={recId}
+                  className="bg-white p-3 rounded-lg border border-amber-200/80 shadow-2xs space-y-2 hover:border-amber-400 transition-colors"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="font-bold text-slate-900 text-xs block">{contactName}</span>
+                      <span className="text-[11px] text-slate-500 block">{companyName}</span>
+                    </div>
+                    <span className="text-xs font-bold font-mono px-1.5 py-0.5 rounded bg-purple-100 text-purple-800">
+                      Score: {score}
+                    </span>
+                  </div>
+                  <div className="text-[11px] text-slate-600">
+                    <span className="font-medium text-slate-700">Role:</span> {role}
+                  </div>
+                  <div className="text-[11px] text-amber-700 font-medium">
+                    {action} ({days}d ago)
+                  </div>
+                  <div className="pt-1 flex items-center justify-between border-t border-slate-100">
+                    <span className="text-[10px] text-slate-400">
+                      {reasons.slice(0, 2).join(' · ')}
+                    </span>
+                    <button
+                      onClick={() => {
+                        const found = items.find((i) => i.id === recId);
+                        if (found) setSelectedItem(found);
+                      }}
+                      className="text-[11px] text-blue-600 font-semibold hover:underline"
+                    >
+                      View Draft →
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Filter Tabs & Search */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <Tabs
@@ -331,7 +403,8 @@ export const Outreach: React.FC = () => {
               <tr>
                 <th className="py-3 px-4">Contact & Role</th>
                 <th className="py-3 px-4">Company & Target Job</th>
-                <th className="py-3 px-4">Channel</th>
+                <th className="py-3 px-4">Channel & Lang</th>
+                <th className="py-3 px-4">Priority Score</th>
                 <th className="py-3 px-4">Evidence Confidence</th>
                 <th className="py-3 px-4">Review Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
@@ -353,7 +426,7 @@ export const Outreach: React.FC = () => {
                     <div className="text-[11px] text-slate-500">{item.targetJobTitle}</div>
                   </td>
                   <td className="py-3 px-4">
-                    <span className="flex items-center gap-1.5 font-medium">
+                    <div className="flex items-center gap-1.5 font-medium">
                       {item.channel === 'Email' ? (
                         <>
                           <Mail className="w-3.5 h-3.5 text-emerald-600" />
@@ -365,7 +438,28 @@ export const Outreach: React.FC = () => {
                           <span className="text-blue-800">LinkedIn</span>
                         </>
                       )}
-                    </span>
+                      <span className="px-1.5 py-0.5 rounded text-[10px] font-mono font-bold bg-slate-100 text-slate-700 uppercase">
+                        {item.language || 'en'}
+                      </span>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4">
+                    {item.priorityScore !== undefined ? (
+                      <span
+                        className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
+                          item.priorityScore >= 70
+                            ? 'bg-purple-100 text-purple-800'
+                            : item.priorityScore >= 40
+                            ? 'bg-blue-100 text-blue-800'
+                            : 'bg-slate-100 text-slate-700'
+                        }`}
+                        title={item.priorityReasons?.join('; ')}
+                      >
+                        {item.priorityScore}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">—</span>
+                    )}
                   </td>
                   <td className="py-3 px-4">
                     <Badge variant={item.evidence.confidence === 'HIGH' ? 'green' : 'amber'}>
@@ -510,6 +604,38 @@ export const Outreach: React.FC = () => {
                 <span className="text-[10px] text-slate-400">
                   Unverified emails are automatically flagged for operator review.
                 </span>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-medium text-slate-700 mb-1">
+                  Draft Language
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setGenLanguage('en')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-medium border text-left flex items-center justify-between ${
+                      genLanguage === 'en'
+                        ? 'border-blue-500 bg-blue-50 text-blue-900 font-semibold'
+                        : 'border-slate-200 bg-white text-slate-600'
+                    }`}
+                  >
+                    <span>English (Relocation)</span>
+                    {genLanguage === 'en' && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setGenLanguage('de')}
+                    className={`py-1.5 px-3 rounded-lg text-xs font-medium border text-left flex items-center justify-between ${
+                      genLanguage === 'de'
+                        ? 'border-blue-500 bg-blue-50 text-blue-900 font-semibold'
+                        : 'border-slate-200 bg-white text-slate-600'
+                    }`}
+                  >
+                    <span>Deutsch (A1 Höflich)</span>
+                    {genLanguage === 'de' && <CheckCircle2 className="w-3.5 h-3.5 text-blue-600" />}
+                  </button>
+                </div>
               </div>
 
               <div className="pt-3 border-t border-slate-100 flex items-center justify-end gap-2">

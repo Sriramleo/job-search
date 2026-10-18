@@ -134,6 +134,15 @@ export const analyticsApi = {
     }
   },
 
+  async getAITrialSummary(): Promise<import('../types').AITrialSummary | null> {
+    try {
+      return await apiClient.get<import('../types').AITrialSummary>('/analytics/ai-trial-summary');
+    } catch (err) {
+      if (import.meta.env.PROD) throw err;
+      return null;
+    }
+  },
+
   // Backward compatible methods
   async getAIUsage(): Promise<AIUsage[]> {
     try {

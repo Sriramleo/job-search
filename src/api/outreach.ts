@@ -53,6 +53,10 @@ export const outreachApi = {
     return await apiClient.get<DailyQuotaLease>('/outreach/lease');
   },
 
+  async getRecommendations(): Promise<import('../types').FollowUpRecommendation[]> {
+    return await apiClient.get<import('../types').FollowUpRecommendation[]>('/outreach/recommendations');
+  },
+
   async getConfig(): Promise<OutreachConfig> {
     return await apiClient.get<OutreachConfig>('/outreach/config');
   },

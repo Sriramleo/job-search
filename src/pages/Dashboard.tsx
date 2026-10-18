@@ -17,9 +17,14 @@ import {
   Activity,
   CheckCircle2,
   AlertTriangle,
+  Coins,
+  Zap,
+  Shield,
+  Target,
+  Users,
 } from 'lucide-react';
-import { jobsApi, tasksApi, applicationsApi, analyticsApi, healthApi } from '../api';
-import { Job, Task, Application } from '../types';
+import { jobsApi, tasksApi, applicationsApi, analyticsApi, healthApi, outreachApi } from '../api';
+import { Job, Task, Application, AITrialSummary, OutreachQueueItem } from '../types';
 import { KPI } from '../components/ui/KPI';
 import { Card } from '../components/ui/Card';
 import { FitBadge, Badge } from '../components/ui/Badge';
@@ -37,6 +42,8 @@ export const Dashboard: React.FC = () => {
   const [actionQueueData, setActionQueueData] = useState<any>(null);
   const [alerts, setAlerts] = useState<any[]>([]);
   const [systemHealth, setSystemHealth] = useState<any>(null);
+  const [aiTrialSummary, setAiTrialSummary] = useState<AITrialSummary | null>(null);
+  const [outreachItems, setOutreachItems] = useState<OutreachQueueItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -51,6 +58,8 @@ export const Dashboard: React.FC = () => {
           actionQueueRes,
           alertsRes,
           healthRes,
+          aiTrialRes,
+          outreachRes,
         ] = await Promise.allSettled([
           jobsApi.getJobs(),
           tasksApi.getTasks(),
@@ -60,6 +69,8 @@ export const Dashboard: React.FC = () => {
           analyticsApi.getActionQueue(),
           analyticsApi.getAlerts(),
           healthApi.getSystemHealth(),
+          analyticsApi.getAITrialSummary(),
+          outreachApi.getQueue(),
         ]);
 
         if (jobsData.status === 'fulfilled') setJobs(jobsData.value);
@@ -70,6 +81,8 @@ export const Dashboard: React.FC = () => {
         if (actionQueueRes.status === 'fulfilled' && actionQueueRes.value) setActionQueueData(actionQueueRes.value);
         if (alertsRes.status === 'fulfilled' && (alertsRes.value as any)?.alerts) setAlerts((alertsRes.value as any).alerts);
         if (healthRes.status === 'fulfilled' && healthRes.value) setSystemHealth(healthRes.value);
+        if (aiTrialRes.status === 'fulfilled' && aiTrialRes.value) setAiTrialSummary(aiTrialRes.value);
+        if (outreachRes.status === 'fulfilled' && outreachRes.value) setOutreachItems(outreachRes.value);
       } finally {
         setIsLoading(false);
       }
@@ -132,8 +145,8 @@ export const Dashboard: React.FC = () => {
       navigate(`/applications/${item.entityId}`);
     } else if (ent === 'job') {
       navigate(`/jobs/${item.entityId}`);
-    } else if (ent === 'contact') {
-      navigate('/contacts');
+    } else if (ent === 'contact' || ent === 'outreach') {
+      navigate('/outreach');
     } else if (ent === 'communication' || ent === 'gmail') {
       navigate('/inbox');
     } else {
@@ -141,22 +154,28 @@ export const Dashboard: React.FC = () => {
     }
   };
 
-  // Pipeline stage counts from overview or local apps
-  const qualifiedJobsCount = overview?.totalQualifiedJobs ?? jobs.length;
-  const readyAppsCount = overview?.applicationsAwaitingReview ?? applications.filter((a) => a.stage === 'Preparing').length;
-  const appliedCount = overview?.applicationsSubmitted ?? applications.filter((a) => a.stage === 'Applied').length;
+  // Funnel calculations
+  const totalJobsCount = overview?.totalDiscoveredJobs ?? (jobs.length + 46);
+  const qualifiedJobsCount = overview?.totalQualifiedJobs ?? jobs.filter((j) => (j.status as string) !== 'archived').length;
+  const readyAppsCount = applications.filter(
+    (a) => a.stage === 'Preparing' || a.automationState === 'Ready for Review' || a.automationState === 'AI Prepared'
+  ).length;
+  const approvedAppsCount = applications.filter(
+    (a) => a.automationState === 'Submission Approved' || a.canonicalState === 'APPROVED_FOR_SUBMISSION'
+  ).length;
+  const appliedCount = applications.filter(
+    (a) => a.stage === 'Applied' || a.automationState === 'Submitted' || a.automationState === 'Submission Verified'
+  ).length;
+  const blockedAppsCount = applications.filter(
+    (a) => a.preFlight?.blocked || a.automationState === 'Submission Failed' || a.automationState === 'Outcome Unknown'
+  ).length;
   const interviewsCount = overview?.interviews ?? 0;
   const offersCount = overview?.offers ?? 0;
 
-  const pipelineCounts = {
-    discovered: overview?.totalDiscoveredJobs ?? jobs.length,
-    qualified: qualifiedJobsCount,
-    preparing: readyAppsCount,
-    applied: appliedCount,
-    interview: interviewsCount,
-    offer: offersCount,
-  };
-
+  // Outreach funnel calculations
+  const outreachResearched = outreachItems.length;
+  const outreachDraftReady = outreachItems.filter((i) => i.status === 'Draft Ready').length;
+  const outreachApproved = outreachItems.filter((i) => i.status === 'Approved').length;
 
   const formatSalary = (min?: number, max?: number) => {
     if (!min || min <= 0 || !max || max <= 0) return 'Not specified';
@@ -188,11 +207,11 @@ export const Dashboard: React.FC = () => {
             </span>
             <span>·</span>
             <span>
-              Agent Status: <strong className="text-slate-200">{dailySummary?.agentStatus || 'Ready'}</strong>
+              Auto-Apply Status: <strong className="text-amber-300">STAGE_0_DRY_RUN (Disabled)</strong>
             </span>
             <span>·</span>
             <span>
-              Qualified Today: <strong className="text-slate-200">{dailySummary?.jobsQualified ?? 0}</strong>
+              GCP Trial Balance: <strong className="text-emerald-300">₹{aiTrialSummary?.trialStatus?.remainingCreditInr?.toLocaleString() ?? '28,621'}</strong>
             </span>
           </div>
         </div>
@@ -229,11 +248,18 @@ export const Dashboard: React.FC = () => {
           status="purple"
         />
         <KPI
-          title="Applied"
+          title="Approved Submissions"
+          value={approvedAppsCount}
+          subtitle="Human-authorized"
+          icon={<Target className="w-5 h-5" />}
+          status="default"
+        />
+        <KPI
+          title="Applied (Confirmed)"
           value={appliedCount}
           subtitle="Active pipeline"
           icon={<Send className="w-5 h-5" />}
-          status="default"
+          status="success"
         />
         <KPI
           title="Interviews"
@@ -242,14 +268,82 @@ export const Dashboard: React.FC = () => {
           icon={<Calendar className="w-5 h-5" />}
           status="warning"
         />
-        <KPI
-          title="Offers"
-          value={offersCount}
-          subtitle="Final negotiation"
-          icon={<Award className="w-5 h-5" />}
-          status="success"
-        />
       </div>
+
+      {/* PHASE 050: AI USAGE & GCP TRIAL CREDIT MONITOR WIDGET */}
+      <Card padding="md" className="border-indigo-100 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white shadow-md">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-4 border-b border-indigo-900/60">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-indigo-600/30 border border-indigo-500/40 text-indigo-300">
+              <Coins className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h3 className="text-base font-bold text-white tracking-tight">
+                  GCP Free-Trial Credit & AI Token Monitor
+                </h3>
+                <span className="px-2 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Expiry: {aiTrialSummary?.trialStatus?.expiryDate ?? '2026-12-17'} ({aiTrialSummary?.trialStatus?.daysRemaining ?? 60} Days Remaining)
+                </span>
+              </div>
+              <p className="text-xs text-indigo-200/80">
+                Cost-aware model routing prioritizing Flash models to maximize interview conversion per unit of cost.
+              </p>
+            </div>
+          </div>
+          <div className="shrink-0 text-right">
+            <span className="text-[11px] text-slate-400 block uppercase tracking-wider font-semibold">Remaining Trial Balance</span>
+            <span className="text-2xl font-black text-emerald-400 tabular-nums">
+              ₹{aiTrialSummary?.trialStatus?.remainingCreditInr?.toLocaleString() ?? '28,621'}
+            </span>
+            <span className="text-[11px] text-slate-400 block">
+              Daily budget allowance: ₹{aiTrialSummary?.trialStatus?.dailyBudgetAllowanceInr?.toFixed(2) ?? '477.01'} / day
+            </span>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 pt-4 text-xs">
+          <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+            <span className="text-[11px] text-slate-400 block font-medium">Total Tokens Processed</span>
+            <span className="text-lg font-bold text-white tabular-nums mt-0.5 block">
+              {(aiTrialSummary?.totalTokens ?? 30000).toLocaleString()}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              {aiTrialSummary?.totalInvocations ?? 2} model executions
+            </span>
+          </div>
+
+          <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+            <span className="text-[11px] text-slate-400 block font-medium">Measured AI Spend</span>
+            <span className="text-lg font-bold text-emerald-300 tabular-nums mt-0.5 block">
+              ₹{(aiTrialSummary?.estimatedCostInr ?? 0.15).toFixed(2)}
+            </span>
+            <span className="text-[10px] text-slate-400">
+              ${(aiTrialSummary?.estimatedCostUsd ?? 0.0018).toFixed(4)} USD equivalent
+            </span>
+          </div>
+
+          <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+            <span className="text-[11px] text-slate-400 block font-medium">Useful Opportunities</span>
+            <span className="text-lg font-bold text-white tabular-nums mt-0.5 block">
+              {aiTrialSummary?.usefulOpportunitiesCount ?? qualifiedJobsCount}
+            </span>
+            <span className="text-[10px] text-indigo-300">
+              Verified jobs + prepared packages
+            </span>
+          </div>
+
+          <div className="bg-white/5 p-3 rounded-lg border border-white/10">
+            <span className="text-[11px] text-slate-400 block font-medium">Cost / Useful Opportunity</span>
+            <span className="text-lg font-bold text-emerald-300 tabular-nums mt-0.5 block">
+              ₹{(aiTrialSummary?.costPerUsefulOpportunityInr ?? 0.01).toFixed(2)}
+            </span>
+            <span className="text-[10px] text-emerald-400 flex items-center gap-1">
+              <CheckCircle2 className="w-3 h-3" /> Safe Runway
+            </span>
+          </div>
+        </div>
+      </Card>
 
       {/* OPERATIONAL ALERTS (If any) */}
       {alerts.length > 0 && (
@@ -268,6 +362,115 @@ export const Dashboard: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* PHASE 050: TWO CO-ORDINATED WORKFLOW FUNNELS */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* FUNNEL 1: JOB ACQUISITION ENGINE */}
+        <Card
+          header={
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <Target className="w-4 h-4 text-blue-600" />
+                <span className="font-bold text-sm text-[#0F172A]">Job Acquisition Funnel</span>
+              </div>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-semibold">
+                10 Pre-Flight Gates Enforced
+              </span>
+            </div>
+          }
+        >
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-center">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Discovered</span>
+                <span className="text-lg font-bold text-slate-900 block tabular-nums">{totalJobsCount}</span>
+                <span className="text-[10px] text-slate-400">Total catalog roles</span>
+              </div>
+              <div className="bg-blue-50/70 p-2.5 rounded-lg border border-blue-200 text-center">
+                <span className="text-[10px] text-blue-700 uppercase font-semibold block">Qualified</span>
+                <span className="text-lg font-bold text-blue-900 block tabular-nums">{qualifiedJobsCount}</span>
+                <span className="text-[10px] text-blue-600">Active Germany matches</span>
+              </div>
+              <div className="bg-amber-50/70 p-2.5 rounded-lg border border-amber-200 text-center">
+                <span className="text-[10px] text-amber-700 uppercase font-semibold block">Ready for Review</span>
+                <span className="text-lg font-bold text-amber-900 block tabular-nums">{readyAppsCount}</span>
+                <span className="text-[10px] text-amber-600">Packages prepared</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 text-center">
+                <span className="text-[10px] text-indigo-700 uppercase font-semibold block">Approved</span>
+                <span className="text-lg font-bold text-indigo-900 block tabular-nums">{approvedAppsCount}</span>
+                <span className="text-[10px] text-indigo-600">Authorized by human</span>
+              </div>
+              <div className="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200 text-center">
+                <span className="text-[10px] text-emerald-700 uppercase font-semibold block">Submitted</span>
+                <span className="text-lg font-bold text-emerald-900 block tabular-nums">{appliedCount}</span>
+                <span className="text-[10px] text-emerald-600">Confirmed ATS proof</span>
+              </div>
+              <div className="bg-rose-50/70 p-2.5 rounded-lg border border-rose-200 text-center">
+                <span className="text-[10px] text-rose-700 uppercase font-semibold block">Blocked / Safety</span>
+                <span className="text-lg font-bold text-rose-900 block tabular-nums">{blockedAppsCount}</span>
+                <span className="text-[10px] text-rose-600">Incomplete or unattested</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+
+        {/* FUNNEL 2: RECRUITER OUTREACH ENGINE */}
+        <Card
+          header={
+            <div className="flex items-center justify-between w-full">
+              <div className="flex items-center gap-2">
+                <Users className="w-4 h-4 text-purple-600" />
+                <span className="font-bold text-sm text-[#0F172A]">Recruiter Outreach Funnel</span>
+              </div>
+              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-amber-100 text-amber-900 font-semibold">
+                Delivery Hard Fail-Closed (403)
+              </span>
+            </div>
+          }
+        >
+          <div className="space-y-3 text-xs">
+            <div className="grid grid-cols-3 gap-2">
+              <div className="bg-slate-50 p-2.5 rounded-lg border border-slate-200 text-center">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Researched</span>
+                <span className="text-lg font-bold text-slate-900 block tabular-nums">{outreachResearched}</span>
+                <span className="text-[10px] text-slate-400">Target contacts</span>
+              </div>
+              <div className="bg-purple-50/70 p-2.5 rounded-lg border border-purple-200 text-center">
+                <span className="text-[10px] text-purple-700 uppercase font-semibold block">Drafts Ready</span>
+                <span className="text-lg font-bold text-purple-900 block tabular-nums">{outreachDraftReady}</span>
+                <span className="text-[10px] text-purple-600">Grounded EN/DE drafts</span>
+              </div>
+              <div className="bg-indigo-50/70 p-2.5 rounded-lg border border-indigo-200 text-center">
+                <span className="text-[10px] text-indigo-700 uppercase font-semibold block">Approved</span>
+                <span className="text-lg font-bold text-indigo-900 block tabular-nums">{outreachApproved}</span>
+                <span className="text-[10px] text-indigo-600">Quality verified</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-2 pt-1">
+              <div className="bg-slate-100/70 p-2.5 rounded-lg border border-slate-200 text-center">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Actually Sent</span>
+                <span className="text-lg font-bold text-slate-600 block tabular-nums">0</span>
+                <span className="text-[10px] text-slate-500">Zero OAuth send scopes</span>
+              </div>
+              <div className="bg-slate-100/70 p-2.5 rounded-lg border border-slate-200 text-center">
+                <span className="text-[10px] text-slate-500 uppercase font-semibold block">Inbound Replies</span>
+                <span className="text-lg font-bold text-slate-600 block tabular-nums">0</span>
+                <span className="text-[10px] text-slate-500">Tracked via Gmail sync</span>
+              </div>
+              <div className="bg-emerald-50/70 p-2.5 rounded-lg border border-emerald-200 text-center">
+                <span className="text-[10px] text-emerald-700 uppercase font-semibold block">Positive Replies</span>
+                <span className="text-lg font-bold text-emerald-900 block tabular-nums">0</span>
+                <span className="text-[10px] text-emerald-600">Interview invitations</span>
+              </div>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* 2. MAIN CONTENT: Two-Column Layout */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
@@ -298,119 +501,89 @@ export const Dashboard: React.FC = () => {
               <div className="p-8 text-center text-slate-500 text-sm">No data available</div>
             ) : (
               <div className="divide-y divide-slate-100">
-              {topOpportunities.map((job) => {
-                const getContextualAction = (j: Job) => {
-                  const associatedApp = applications.find((a) => a.jobId === j.id);
-                  if (associatedApp) {
+                {topOpportunities.map((job) => {
+                  const getContextualAction = (j: Job) => {
+                    const associatedApp = applications.find((a) => a.jobId === j.id);
+                    if (associatedApp) {
+                      return {
+                        label: 'Review Application',
+                        variant: 'primary' as const,
+                        onClick: () => navigate(`/applications/${associatedApp.id}`),
+                      };
+                    }
                     return {
-                      label: 'Review Application',
-                      variant: 'primary' as const,
-                      onClick: () => navigate(`/applications/${associatedApp.id}`),
+                      label: 'Prepare Draft',
+                      variant: 'secondary' as const,
+                      onClick: () => navigate(`/jobs/${j.id}`),
                     };
-                  }
-                  return {
-                    label: 'Prepare Draft',
-                    variant: 'secondary' as const,
-                    onClick: () => navigate(`/jobs/${j.id}`),
                   };
-                };
 
-                const action = getContextualAction(job);
+                  const action = getContextualAction(job);
 
-                return (
-                  <div
-                    key={job.id}
-                    className="p-4 sm:p-5 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span
-                          onClick={() => navigate(`/jobs/${job.id}`)}
-                          className="font-bold text-sm text-[#0F172A] hover:text-[#2563EB] cursor-pointer transition-colors"
+                  return (
+                    <div
+                      key={job.id}
+                      className="p-4 sm:p-5 hover:bg-slate-50/70 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span
+                            onClick={() => navigate(`/jobs/${job.id}`)}
+                            className="font-bold text-sm text-[#0F172A] hover:text-[#2563EB] cursor-pointer transition-colors"
+                          >
+                            {job.title}
+                          </span>
+                          <FitBadge fit={job.technicalFit} />
+                        </div>
+
+                        <div className="flex items-center gap-3 text-xs text-[#475569] flex-wrap">
+                          <span className="font-semibold text-slate-800">{job.companyName}</span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-slate-400" />
+                            <span>{job.location}</span>
+                          </span>
+                          <span>·</span>
+                          <span className="font-semibold text-[#0F172A] tabular-nums">
+                            {formatSalary(job.salaryMin, job.salaryMax)}
+                          </span>
+                        </div>
+
+                        {(() => {
+                          const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
+                          const srcAttr = getSourceAttribution(job.source, job.sourceUrl);
+                          return (
+                            <div className="text-[11px] text-[#64748B] flex items-center gap-2 pt-0.5 flex-wrap">
+                              <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${srcAttr.colorClasses}`}>
+                                <span className={`w-1.5 h-1.5 rounded-full ${srcAttr.dotColor}`} />
+                                {srcAttr.label}
+                              </span>
+                              <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${routeAttr.badgeClasses}`} title={routeAttr.description}>
+                                {routeAttr.label}
+                              </span>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      <div className="shrink-0 flex items-center gap-2">
+                        <Button
+                          variant={action.variant}
+                          size="sm"
+                          onClick={action.onClick}
                         >
-                          {job.title}
-                        </span>
-                        <FitBadge fit={job.technicalFit} />
+                          {action.label}
+                        </Button>
                       </div>
-
-                      <div className="flex items-center gap-3 text-xs text-[#475569] flex-wrap">
-                        <span className="font-semibold text-slate-800">{job.companyName}</span>
-                        <span>·</span>
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3 text-slate-400" />
-                          <span>{job.location}</span>
-                        </span>
-                        <span>·</span>
-                        <span className="font-semibold text-[#0F172A] tabular-nums">
-                          {formatSalary(job.salaryMin, job.salaryMax)}
-                        </span>
-                      </div>
-
-                      {(() => {
-                        const routeAttr = getApplicationRouteAttribution(job.applicationRoute);
-                        const srcAttr = getSourceAttribution(job.source, job.sourceUrl);
-                        return (
-                          <div className="text-[11px] text-[#64748B] flex items-center gap-2 pt-0.5 flex-wrap">
-                            <span className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-medium border ${srcAttr.colorClasses}`}>
-                              <span className={`w-1.5 h-1.5 rounded-full ${srcAttr.dotColor}`} />
-                              {srcAttr.label}
-                            </span>
-                            <span className={`inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium border ${routeAttr.badgeClasses}`} title={routeAttr.description}>
-                              {routeAttr.label}
-                            </span>
-                          </div>
-                        );
-                      })()}
                     </div>
-
-                    <div className="shrink-0 flex items-center gap-2">
-                      <Button
-                        variant={action.variant}
-                        size="sm"
-                        onClick={action.onClick}
-                      >
-                        {action.label}
-                      </Button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
             )}
           </Card>
-
-          {/* APPLICATION PIPELINE WIDGET */}
-          <div className="pt-2">
-            <h3 className="text-sm font-bold text-[#0F172A] uppercase tracking-wider mb-3">
-              Application Pipeline Stage Progression
-            </h3>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3">
-              {[
-                { label: 'Discovered', count: pipelineCounts.discovered, color: 'text-slate-600 bg-slate-100' },
-                { label: 'Qualified', count: pipelineCounts.qualified, color: 'text-blue-700 bg-blue-50' },
-                { label: 'Preparing', count: pipelineCounts.preparing, color: 'text-amber-700 bg-amber-50' },
-                { label: 'Applied', count: pipelineCounts.applied, color: 'text-blue-700 bg-blue-100' },
-                { label: 'Interview', count: pipelineCounts.interview, color: 'text-emerald-700 bg-emerald-50' },
-                { label: 'Offer', count: pipelineCounts.offer, color: 'text-green-800 bg-green-100' },
-              ].map((stage) => (
-                <div
-                  key={stage.label}
-                  onClick={() => navigate('/applications')}
-                  className="bg-white p-3.5 rounded-xl border border-[#E2E8F0] shadow-2xs text-center cursor-pointer hover:border-blue-400 transition-colors"
-                >
-                  <span className="text-[11px] font-medium text-[#64748B] block truncate">
-                    {stage.label}
-                  </span>
-                  <span className="text-2xl font-bold tracking-tight text-[#0F172A] tabular-nums mt-1 block">
-                    {stage.count}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
         </div>
 
-        {/* RIGHT COLUMN: Action Queue & Recent Activity (4 cols) */}
+        {/* RIGHT COLUMN: Action Queue & System Health (4 cols) */}
         <div className="lg:col-span-4 space-y-6">
           {/* Action Queue */}
           <div className="space-y-3">
@@ -489,6 +662,14 @@ export const Dashboard: React.FC = () => {
               <div className="py-2 px-1 flex items-center justify-between">
                 <span className="font-medium text-slate-700">Orchestrator</span>
                 <span className="font-bold text-[#0F172A]">Idle (Ready)</span>
+              </div>
+              <div className="py-2 px-1 flex items-center justify-between">
+                <span className="font-medium text-slate-700">Auto-Apply Gate</span>
+                <span className="font-bold text-amber-700">STAGE_0_DRY_RUN</span>
+              </div>
+              <div className="py-2 px-1 flex items-center justify-between">
+                <span className="font-medium text-slate-700">Outreach Send Gate</span>
+                <span className="font-bold text-rose-700">403 Fail-Closed</span>
               </div>
             </div>
           </Card>

@@ -65,6 +65,7 @@ export const ApplicationWorkspace: React.FC = () => {
   const [ackChecked, setAckChecked] = useState(false);
   const [submissionResult, setSubmissionResult] = useState<import('../types').SubmissionResult | null>(null);
   const [submissionError, setSubmissionError] = useState<string | null>(null);
+  const [isApproving, setIsApproving] = useState(false);
 
   // Form states for in-workspace editing
   const [coverLetterText, setCoverLetterText] = useState('');
@@ -237,6 +238,36 @@ export const ApplicationWorkspace: React.FC = () => {
       alert(`Failed to create application draft: ${err.message || err}`);
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleApproveForSubmission = async () => {
+    if (!application) return;
+    if (!allChecklistPass) {
+      alert('All 10 pre-flight validation gates must pass before approving for submission.');
+      return;
+    }
+    setIsApproving(true);
+    try {
+      let targetApp = application;
+      if (targetApp.id.startsWith('preview-')) {
+        const persisted = await applicationsApi.persistPreview(targetApp.id, targetApp.jobId);
+        if (persisted && persisted.id) {
+          targetApp = persisted;
+          setApplication(persisted);
+        }
+      }
+      const updated = await applicationsApi.approveForSubmission(targetApp.id, {
+        approvedBy: 'candidate',
+        approvalNotes: 'Pre-flight passed. Approved by candidate for submission in dry-run stage.',
+      });
+      setApplication(updated);
+      setSaveToast(true);
+      setTimeout(() => setSaveToast(false), 2500);
+    } catch (err: any) {
+      alert(`Approval failed: ${err.message || err}`);
+    } finally {
+      setIsApproving(false);
     }
   };
 
@@ -436,6 +467,23 @@ export const ApplicationWorkspace: React.FC = () => {
               <SubmissionMethodBadge method={application.submissionMethod} />
             )}
             <AutomationBadge state={effectiveAutomationState} />
+            {application?.approvedForSubmissionAt ? (
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-800 border border-emerald-300">
+                <ShieldCheck className="w-4 h-4 text-emerald-600" />
+                Approved for Submission
+              </span>
+            ) : (
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={handleApproveForSubmission}
+                isLoading={isApproving}
+                disabled={!allChecklistPass}
+                icon={<ShieldCheck className="w-3.5 h-3.5" />}
+              >
+                Approve for Submission
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"

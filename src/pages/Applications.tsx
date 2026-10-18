@@ -405,7 +405,14 @@ export const Applications: React.FC = () => {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 whitespace-nowrap">
-                      <AutomationBadge state={app.automationState} />
+                      <div className="flex flex-col gap-1 items-start">
+                        <AutomationBadge state={app.automationState} />
+                        {app.approvedForSubmissionAt && (
+                          <span className="inline-flex items-center gap-1 text-[10px] font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-1.5 py-0.5 rounded">
+                            <ShieldCheck className="w-2.5 h-2.5" /> Approved
+                          </span>
+                        )}
+                      </div>
                     </td>
                     <td className="py-3.5 px-4 text-[#475569] max-w-xs">
                       <span className="line-clamp-1">{app.nextAction}</span>

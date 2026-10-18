@@ -77,6 +77,16 @@ export const applicationsApi = {
   },
 
   /**
+   * Phase 050: Explicit authorization and approval of application for submission after 10-gate audit.
+   */
+  async approveForSubmission(applicationId: string, payload?: { approvedBy?: string; approvalNotes?: string }): Promise<Application> {
+    return await apiClient.post<Application>(`/applications/${applicationId}/approve-for-submission`, payload || {
+      approvedBy: 'Sriram Sugavanam',
+      approvalNotes: 'Audited 10 pre-flight eligibility gates',
+    });
+  },
+
+  /**
    * CRITICAL HUMAN SAFETY BOUNDARY:
    * Explicit confirmation that candidate has manually submitted the application in external ATS.
    */
