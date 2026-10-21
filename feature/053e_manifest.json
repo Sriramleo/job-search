@@ -1,0 +1,114 @@
+{
+  "phase": "053E",
+  "timestamp": "2026-10-21T12:10:11.334262+00:00",
+  "database_environment": "MongoDB Atlas ReplicaSet (job_search_db)",
+  "cluster_version": "v8.0.34",
+  "authorization_scope": "Phase 053E explicit operator approval for 8 candidate IDs",
+  "authorized_candidate_count": 8,
+  "inserted_count": 8,
+  "excluded_count": 0,
+  "inserted_records": [
+    {
+      "candidate_id": "cand_053d_0516",
+      "inserted_job_id": "job_disc_053e_588b18209be2",
+      "company_name": "Computacenter AG & Co. oHG",
+      "title": "(Senior) DevOps Engineer",
+      "location": "Berlin, Germany",
+      "canonical_url": "https://arbeitsagentur.de/jobsuche/jobdetail/10001-1003646895-S",
+      "source_name": "Bundesagentur für Arbeit",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0518",
+      "inserted_job_id": "job_disc_053e_71b568d43a70",
+      "company_name": "D-TRUST GmbH",
+      "title": "(Senior) DevOps Engineer - Platform Services",
+      "location": "Berlin, Germany",
+      "canonical_url": "https://arbeitsagentur.de/jobsuche/jobdetail/15933-0065540001-S",
+      "source_name": "Bundesagentur für Arbeit",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0520",
+      "inserted_job_id": "job_disc_053e_5ee932dcdf0f",
+      "company_name": "BWI GmbH",
+      "title": "Senior Platform Engineer",
+      "location": "Berlin, Germany",
+      "canonical_url": "https://arbeitsagentur.de/jobsuche/jobdetail/12336-a26f539j0452041-S",
+      "source_name": "Bundesagentur für Arbeit",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0523",
+      "inserted_job_id": "job_disc_053e_2ac477b3be86",
+      "company_name": "EY Consulting GmbH",
+      "title": "Senior DevOps Engineer - Digital Health Excellence Center",
+      "location": "Berlin, Germany",
+      "canonical_url": "https://arbeitsagentur.de/jobsuche/jobdetail/15548-1530219-1-S",
+      "source_name": "Bundesagentur für Arbeit",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0527",
+      "inserted_job_id": "job_disc_053e_cd8e211a4a56",
+      "company_name": "BWI GmbH",
+      "title": "Senior Platform Engineer",
+      "location": "Berlin, Germany",
+      "canonical_url": "https://arbeitsagentur.de/jobsuche/jobdetail/13509-0000211104c002-S",
+      "source_name": "Bundesagentur für Arbeit",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0554",
+      "inserted_job_id": "job_disc_053e_9b7677c2f509",
+      "company_name": "BWI GmbH",
+      "title": "Senior DevOps Engineer",
+      "location": "Germany, Germany",
+      "canonical_url": "https://xing.com/jobs/berlin-senior-devops-engineer-153614433",
+      "source_name": "XING Jobs",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0555",
+      "inserted_job_id": "job_disc_053e_f5688b5023f7",
+      "company_name": "hygi.de Telgte",
+      "title": "Senior DevOps & Platform Engineer",
+      "location": "Germany, Germany",
+      "canonical_url": "https://xing.com/jobs/telgte-senior-devops-platform-engineer-158684802",
+      "source_name": "XING Jobs",
+      "status": "INSERTED_AND_VERIFIED"
+    },
+    {
+      "candidate_id": "cand_053d_0591",
+      "inserted_job_id": "job_disc_053e_5df81b3bfd63",
+      "company_name": "Spread Group",
+      "title": "Platform Engineer",
+      "location": "Remote job, Germany",
+      "canonical_url": "https://arbeitnow.com/jobs/companies/spread-group/remote-platform-engineer-berlin-8213",
+      "source_name": "Honeypot / Germany Tech",
+      "status": "INSERTED_AND_VERIFIED"
+    }
+  ],
+  "pre_write_counts": {
+    "discovered_jobs": 1137,
+    "jobs": 191,
+    "applications": 25,
+    "companies": 33,
+    "discovery_runs": 38
+  },
+  "post_write_counts": {
+    "discovered_jobs": 1145,
+    "jobs": 191,
+    "applications": 25,
+    "companies": 33,
+    "discovery_runs": 38
+  },
+  "collection_deltas": {
+    "discovered_jobs": 8,
+    "jobs": 0,
+    "applications": 0,
+    "companies": 0,
+    "discovery_runs": 0
+  },
+  "verification_status": "PASSED_100_PERCENT"
+}
