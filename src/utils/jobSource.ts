@@ -46,6 +46,24 @@ export function getSourceAttribution(source?: string | null, sourceUrl?: string 
     };
   }
 
+  if (url.includes('ashbyhq.com') || s.includes('ashby')) {
+    return {
+      label: 'Ashby ATS',
+      sourceType: 'Direct ATS',
+      colorClasses: 'bg-violet-50 text-violet-700 border-violet-200',
+      dotColor: 'bg-violet-500',
+    };
+  }
+
+  if (url.includes('welcometothejungle.com') || s.includes('welcometothejungle') || s.includes('welcome to the jungle')) {
+    return {
+      label: 'Welcome to the Jungle',
+      sourceType: 'Board',
+      colorClasses: 'bg-yellow-50 text-yellow-800 border-yellow-300',
+      dotColor: 'bg-[#FFCD00]',
+    };
+  }
+
   if (url.includes('myworkdayjobs') || url.includes('workday') || s.includes('workday')) {
     return {
       label: 'Workday ATS',
